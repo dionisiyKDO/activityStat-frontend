@@ -1,6 +1,12 @@
 aw-buckets-export.json
+aw-buckets-export_old.json
 test.ipynb
 test.py
+
+/node_modules/
+/public/build/
+
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
