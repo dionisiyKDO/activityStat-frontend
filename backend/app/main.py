@@ -1,11 +1,16 @@
 from fastapi import FastAPI
+from app.utils import *
 
 app = FastAPI()
+
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/items")
+def read_item():
+    df_og = get_df()
+    items = {"items": {"foo": "bar", "baz": "buz"}}
+    return total_spent_time(df_og)
+
