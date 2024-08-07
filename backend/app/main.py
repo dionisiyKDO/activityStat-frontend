@@ -11,6 +11,5 @@ def read_root():
 @app.get("/items")
 def read_item():
     df_og = get_df()
-    items = {"items": {"foo": "bar", "baz": "buz"}}
     return total_spent_time(df_og)
 

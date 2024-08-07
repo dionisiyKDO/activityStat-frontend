@@ -57,7 +57,10 @@ def total_spent_time(df_og: pd.DataFrame, separate_buckets: bool = False) -> pd.
     if not separate_buckets:
         df_result = df_result.groupby(['app'], as_index=False).agg({'duration': 'sum'})
     
-    return df_result
+    df_result.sort_values('duration', ascending=False, inplace=True)
+    df_result = df_result[df_result['duration'] >= 10]
+
+    return df_result.to_json(orient='records')
 
 if __name__ == '__main__':
     df = get_df('aw-buckets-export.json')
