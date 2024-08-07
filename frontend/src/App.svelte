@@ -1,20 +1,32 @@
 <script>
 	import Header from "./lib/Header.svelte";
 	import Table from "./lib/Table.svelte";
+	import D3Chart from "./lib/D3Chart.svelte";
 	import { onMount } from "svelte";
 
-	let count = $state(0);
 
-	function increment() {
-		count += 1;
-	}
+	let data = $state([]);
+    let waiting = $state('Loading...');
+
+    async function getTableItems() {
+        const response = await fetch("/api/items");
+        const r = JSON.parse( await response.json() );
+
+        data = r;
+        waiting = '';
+
+        console.log(r);
+    }
+
+    onMount(() => {
+        getTableItems();
+    });
 </script>
 
 <Header />
 <main>
-	<button onclick={increment}>
-		clicks: {count}
-	</button>
-
-	<Table />
+	{#if data.length > 0}
+		<D3Chart {data} />
+		<Table {data} {waiting} />
+	{/if}
 </main>

@@ -1,21 +1,7 @@
 <script>
     import { onMount } from "svelte";
-
-    let data = $state([]);
-    let waiting = $state('Loading...');
-
-    async function getTableItems() {
-        const response = await fetch("/api/items");
-        const r = JSON.parse( await response.json() );
-
-        data = r;
-
-        waiting = '';
-    }
-
-    onMount(() => {
-        getTableItems();
-    });
+    export let data;
+    export let waiting;
 </script>
 
 <div class="container">
