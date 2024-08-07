@@ -10,7 +10,10 @@
 
     async function getTableItems() {
         const response = await fetch("/api/items");
-        const r = JSON.parse( await response.json() );
+        const r = JSON.parse( 
+            await response.json(), // returns a promise
+            (key, value) => typeof value === "number" ? Math.round(value * 100) / 100 : value
+        );
 
         data = r;
         waiting = '';

@@ -6,7 +6,7 @@ from modules import spent_time
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.options.mode.chained_assignment = None
-pd.options.display.precision = 8
+pd.options.display.precision = 2
 data_path = 'aw-buckets-export.json'
 cache_path = './cache/'
 
@@ -65,12 +65,13 @@ def __is_cache_valid(file_name):
 def get_spent_time():
     file_name = 'spent_time.json'
     if __is_cache_valid(file_name):
-        return __load_cache(file_name)
+        result = __load_cache(file_name)
+        return result.to_json(orient='records')
     else:
         df = __get_df()
         result = spent_time.spent_time(df)
         __save_cache(data=result, file_name=file_name)
-        return result
+        return result.to_json(orient='records')
 
 if __name__ == '__main__':
     print(get_spent_time())
