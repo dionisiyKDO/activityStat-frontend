@@ -1,16 +1,18 @@
 import pandas as pd
 import numpy as np
-import re
+import re, os, json
+from modules import spent_time
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.options.mode.chained_assignment = None
 pd.options.display.precision = 8
-path = 'app/aw-buckets-export.json'
+data_path = 'aw-buckets-export.json'
+cache_path = './cache/'
 
-
-def get_df(path=path) -> pd.DataFrame:
+def __get_df(path=data_path) -> pd.DataFrame:
     df = pd.read_json(path_or_buf=path)
+    df = __extract_window_events(df)
     return df
 
 def __extract_window_events(df_og: pd.DataFrame) -> pd.DataFrame:
@@ -42,26 +44,33 @@ def __extract_window_events(df_og: pd.DataFrame) -> pd.DataFrame:
     
     return pd.DataFrame({'timestamp': timestamp_arr, 'duration': duration_arr, 'app': app_arr, 'title': title_arr,})
 
-def total_spent_time(df_og: pd.DataFrame, separate_buckets: bool = False) -> pd.DataFrame:
-    '''Calculates the total time spent on each application'''
-    df_events = __extract_window_events(df_og)
-    df_result = pd.DataFrame(columns=['app', 'duration'])
-    
-    # group by 'app' aggregating 'duration' by summing its values
-    df_events = df_events.groupby(['app'], as_index=False).agg({'duration': 'sum'})
-    df_events['duration'] = df_events['duration'] / 60.0 / 60.0 # seconds to hours
-    df_events.sort_values('duration', ascending=False, inplace=True)
-    
-    df_result = pd.concat([df_result, df_events])
-    
-    if not separate_buckets:
-        df_result = df_result.groupby(['app'], as_index=False).agg({'duration': 'sum'})
-    
-    df_result.sort_values('duration', ascending=False, inplace=True)
-    df_result = df_result[df_result['duration'] >= 10]
+def __save_cache(data, file_name):
+    with open(cache_path + file_name, 'w') as f:
+        json.dump(data.to_json(orient='records'), f)
 
-    return df_result.to_json(orient='records')
+def __load_cache(file_name):
+    # TODO check empty file
+    with open(cache_path + file_name, 'r') as f:
+        return pd.read_json(json.load(f))
+
+def __is_cache_valid(file_name):
+    if not os.path.exists(cache_path + file_name):
+        return False
+    
+    source_mtime = os.path.getmtime(data_path)
+    cache_mtime = os.path.getmtime(cache_path + file_name)
+
+    return cache_mtime > source_mtime
+
+def get_spent_time():
+    file_name = 'spent_time.json'
+    if __is_cache_valid(file_name):
+        return __load_cache(file_name)
+    else:
+        df = __get_df()
+        result = spent_time.spent_time(df)
+        __save_cache(data=result, file_name=file_name)
+        return result
 
 if __name__ == '__main__':
-    df = get_df('aw-buckets-export.json')
-    print(total_spent_time(df))
+    print(get_spent_time())

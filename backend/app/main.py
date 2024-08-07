@@ -10,6 +10,5 @@ def read_root():
 
 @app.get("/items")
 def read_item():
-    df_og = get_df()
-    return total_spent_time(df_og)
+    return get_spent_time()
 
