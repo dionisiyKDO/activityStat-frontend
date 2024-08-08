@@ -5,83 +5,103 @@
     export let data = [];
 
     onMount(() => {
+        // Setting up the SVG container dimensions
         const container = d3.select(".chart-container");
         const width = container.node().getBoundingClientRect().width;
-        // const width = 800;
         const height = 400;
-        const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+        const margin = { top: 10, right: 30, bottom: 100, left: 40 };
 
         const svg = d3
-        .select("#chart")
-        .attr("width", width)
-        .attr("height", height);
+            .select("#spent-time-chart")                             // select the SVG element
+                .attr("viewBox", `0 0 ${width} ${height}`)           // set scalable height and width
+                .attr("transform", `translate(${0},${-margin.top})`) // move the group element
+                .append("g");                                        // append a group element
+        
+        // Create a scale for the x-axis (applications)
+        const x = d3.scaleBand()
+            .domain(data.map(d => d.app))                            // select data
+            .range([margin.left, width - margin.right])              // set range
+            .padding(0.05);                                          // add padding
 
-        const x = d3
-        .scaleBand()
-        .domain(data.map((d) => d.app))
-        .range([margin.left, width - margin.right])
-        .padding(0.1);
+        // Create a scale for the y-axis (duration)
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.duration)])              // select data
+            .range([height - margin.bottom, margin.top])             // set range
+            .nice();                                                 // set highest y value a nice round number 
 
-        const y = d3
-        .scaleLinear()
-        .domain([0, d3.max(data, (d) => d.duration)])
-        .nice()
-        .range([height - margin.bottom, margin.top]);
+        // Add the axises to the SVG
+        // #region
+        // Add the x-axis to the SVG
+        svg.append("g")
+            .attr("transform", `translate(0,${height - margin.bottom})`)    // y-axis position
+            .call(d3.axisBottom(x))                                         // x-axis
+            .selectAll("text")                          // select all labels
+                .attr("transform", "rotate(-45)")       // rotate selected labels
+                .style("text-anchor", "end");           // make so end of the label is at the x-axis line (position anchor is at the end of the label)
 
-        const tooltip = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("position", "absolute")
-        .style("visibility", "hidden")
-        .style("background-color", "white")
-        .style("border", "solid 1px #000")
-        .style("color", "black")
-        .style("padding", "5px")
-        .style("border-radius", "5px");
+        // Add the y-axis to the SVG
+        svg.append("g")
+            .attr("transform", `translate(${margin.left},0)`)   // x-axis position
+            .call(d3.axisLeft(y));                              // y-axis                    
+        // #endregion
 
-        svg
-        .append("g")
-        .selectAll("rect")
-        .data(data)
-        .join("rect")
-        .attr("x", (d) => x(d.app))
-        .attr("y", y(0))
-        .attr("height", 0)
-        .attr("width", x.bandwidth())
-        .attr("fill", "steelblue")
-        .on("mouseover", function(event, d) {
-            tooltip
-            .html(`App: ${d.app}<br>Duration: ${d.duration}`)
-            .style("visibility", "visible");
-            d3.select(this).attr("fill", "orange");
-        })
-        .on("mousemove", function(event) {
-            tooltip
-            .style("top", `${event.pageY - 10}px`)
-            .style("left", `${event.pageX + 10}px`);
-        })
-        .on("mouseout", function() {
-            tooltip.style("visibility", "hidden");
-            d3.select(this).attr("fill", "steelblue");
-        })
-        .transition()
-        .duration(750)
-        .attr("y", (d) => y(d.duration))
-        .attr("height", (d) => y(0) - y(d.duration));
-
-        svg
-        .append("g")
-        .call(d3.axisLeft(y))
-        .attr("transform", `translate(${margin.left},0)`);
-
-        svg
-        .append("g")
-        .call(d3.axisBottom(x))
-        .attr("transform", `translate(0,${height - margin.bottom})`);
+        // Create the bars
+        svg.selectAll(".bar")                           // select all (future) bars
+            .data(data)                                 // bind data ('create' bars for each entrie in data)
+            .enter().append("rect")                     // append a 'rect' for each entrie and for each rect:
+                .attr("class", "bar")                       // add class 'bar'
+                .attr("x", d => x(d.app))                   // set x position
+                .attr("y", d => y(d.duration))              // set y position
+                .attr("width", x.bandwidth())               // set width
+                .attr("height", d => y(0) - y(d.duration))  // set height
+                .attr("fill", "#e9e9e9")                    // set color
+                .attr("transition", "all 0.5s ease")             // add transition
+            .on("mouseover", function(event, d) {
+                tooltip
+                    .transition()
+                    .duration(200)
+                    .style("opacity", 1);
+                tooltip
+                    .html(`App: <strong>${d.app}</strong><br>Duration: <strong>${d.duration.toFixed(2)}</strong> hours`)
+                    .style("left", (event.pageX) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+                d3.select(this) 
+                    .attr("fill", "#cacaca")
+                    .attr("cursor", "pointer");
+            })
+            .on("mousemove", function(event) {
+                tooltip
+                    .style("top", `${event.pageY - 10}px`)
+                    .style("left", `${event.pageX + 10}px`);
+            })
+            .on("mouseout", function(d) {
+                tooltip
+                    .transition()
+                    .duration(500)
+                    .style("opacity", 0);
+                d3.select(this)
+                    .attr("fill", "#e9e9e9")
+                    .attr("cursor", "default");
+            });
+        
+        // Add a tooltip
+        const tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip")
+                .style("position", "absolute")
+                .style("background-color", "#1a1a1a")
+                .style("border", "solid 1px #646cff")
+                .style("color", "rgba(255, 255, 255, 0.87)")
+                .style("padding", "5px")
+                .style("border-radius", "2px")
+                .style("opacity", 0)
+                .style("pointer-events", "none"); // Prevent the tooltip from interfering with mouse events
+                ;
     });
 </script>
 
 <div class="chart-container">
-    <svg id="chart"></svg>
+    <svg id="spent-time-chart"></svg>
 </div>
 
 <style>
