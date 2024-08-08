@@ -4,6 +4,7 @@
 
     export let data = [];
 
+    // TODO : Show titles of the apps (Client-Win64-Shipping.exe is fucking Wuthering Waves)
     onMount(() => {
         // Setting up the SVG container dimensions
         const container = d3.select(".chart-container");

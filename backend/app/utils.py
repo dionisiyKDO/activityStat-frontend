@@ -32,7 +32,9 @@ def __extract_window_events(df_og: pd.DataFrame) -> pd.DataFrame:
 
     # main loop
     for bucket_id in parse_buckets_id:
-        df_bucket = pd.DataFrame(df_og['buckets'][bucket_id])
+        df_data = df_og['buckets'][bucket_id]
+        df_data.pop('data', None) # remove 'data' key with empty dict (for some reason fucking reason it is here), so it wouldnt cause an error - "ValueError: Mixing dicts with non-Series may lead to ambiguous ordering."
+        df_bucket = pd.DataFrame(df_data)
 
         for ind in df_bucket.index:
             event = df_bucket['events'][ind]
