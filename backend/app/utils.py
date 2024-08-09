@@ -1,14 +1,15 @@
 import pandas as pd
 import numpy as np
 import re, os, json
-from modules import spent_time
+from modules.spent_time import spent_time 
+from modules.daily_app_usage import daily_app_usage 
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.options.mode.chained_assignment = None
 pd.options.display.precision = 2
-data_path = 'aw-buckets-export.json'
-cache_path = './cache/'
+data_path = 'data/aw-buckets-export.json'
+cache_path = './data/cache/'
 
 def __get_df(path=data_path) -> pd.DataFrame:
     df = pd.read_json(path_or_buf=path)
@@ -46,34 +47,52 @@ def __extract_window_events(df_og: pd.DataFrame) -> pd.DataFrame:
     
     return pd.DataFrame({'timestamp': timestamp_arr, 'duration': duration_arr, 'app': app_arr, 'title': title_arr,})
 
-def __save_cache(data, file_name):
-    with open(cache_path + file_name, 'w') as f:
+def __save_cache(data, file_path):
+    with open(cache_path + file_path, 'w') as f:
         json.dump(data.to_json(orient='records'), f)
 
-def __load_cache(file_name):
+def __load_cache(file_path):
     # TODO check empty file
-    with open(cache_path + file_name, 'r') as f:
+    with open(cache_path + file_path, 'r') as f:
         return pd.read_json(json.load(f))
 
-def __is_cache_valid(file_name):
-    if not os.path.exists(cache_path + file_name):
+def __is_cache_valid(file_path):
+    if not os.path.exists(cache_path + file_path):
         return False
     
     source_mtime = os.path.getmtime(data_path)
-    cache_mtime = os.path.getmtime(cache_path + file_name)
+    cache_mtime = os.path.getmtime(cache_path + file_path)
 
     return cache_mtime > source_mtime
 
+
 def get_spent_time():
-    file_name = 'spent_time.json'
-    if __is_cache_valid(file_name):
-        result = __load_cache(file_name)
+    file_path = 'spent_time.json'
+    if __is_cache_valid(file_path):
+        result = __load_cache(file_path)
         return result.to_json(orient='records')
     else:
         df = __get_df()
-        result = spent_time.spent_time(df)
-        __save_cache(data=result, file_name=file_name)
+        result = spent_time(df)
+        __save_cache(data=result, file_path=file_path)
         return result.to_json(orient='records')
+
+def get_daily_app_usage(app_name: str = 'chrome.exe'):
+    '''Calculates the time spent on each application each day'''
+    
+    file_path = f'daily_app_usage/daily_app_usage_{app_name}.json'
+    if __is_cache_valid(file_path):
+        result = __load_cache(file_path)
+        return result.to_json(orient='records')
+    else:
+        df = __get_df()
+        result = daily_app_usage(df, app_name)
+        __save_cache(data=result, file_path=file_path)
+        return result.to_json(orient='records')
+    
+    
+
+
 
 if __name__ == '__main__':
     print(get_spent_time())

@@ -9,7 +9,7 @@
     let waiting = $state('Loading...');
 
     async function getTableItems() {
-        const response = await fetch("/api/items");
+        const response = await fetch("/api/spent_time");
         const r = JSON.parse( 
             await response.json(), // returns a promise
             (key, value) => typeof value === "number" ? Math.round(value * 100) / 100 : value
