@@ -90,6 +90,7 @@ def __is_cache_valid(file_path):
         return False
 
 def get_spent_time():
+    # TODO: different result with different hyperparameters, take this into account when saving cache
     file_path = 'spent_time.json'
     if __is_cache_valid(file_path):
         result = __load_cache(file_path)
