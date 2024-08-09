@@ -12,6 +12,6 @@ def read_root():
 def read_item():
     return get_spent_time()
 
-@app.get("/daily_app_usage")
-def read_item():
-    return get_daily_app_usage()
+@app.get("/daily_app_usage/{app_name}")
+def read_item(app_name: str):
+    return get_daily_app_usage(app_name)
