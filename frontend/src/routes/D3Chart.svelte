@@ -1,8 +1,9 @@
 <script>
-    import { onMount } from "svelte";
+    // @ts-ignore
     import * as d3 from "d3";
+    import { onMount } from "svelte";
 
-    export let data = [];
+    export let data;
 
     // TODO : Show titles of the apps (Client-Win64-Shipping.exe is fucking Wuthering Waves)
     // TODO : loading something for first request
@@ -21,12 +22,14 @@
         
         // Create a scale for the x-axis (applications)
         const x = d3.scaleBand()
+            // @ts-ignore
             .domain(data.map(d => d.app))                            // select data
             .range([margin.left, width - margin.right])              // set range
             .padding(0.05);                                          // add padding
 
         // Create a scale for the y-axis (duration)
         const y = d3.scaleLinear()
+            // @ts-ignore
             .domain([0, d3.max(data, d => d.duration)])              // select data
             .range([height - margin.bottom, margin.top])             // set range
             .nice();                                                 // set highest y value a nice round number 
@@ -52,12 +55,16 @@
             .data(data)                                 // bind data ('create' bars for each entrie in data)
             .enter().append("rect")                     // append a 'rect' for each entrie and for each rect:
                 .attr("class", "bar")                       // add class 'bar'
+                // @ts-ignore
                 .attr("x", d => x(d.app))                   // set x position
+                // @ts-ignore
                 .attr("y", d => y(d.duration))              // set y position
                 .attr("width", x.bandwidth())               // set width
+                // @ts-ignore
                 .attr("height", d => y(0) - y(d.duration))  // set height
                 .attr("fill", "#e9e9e9")                    // set color
                 .attr("transition", "all 0.5s ease")             // add transition
+            // @ts-ignore
             .on("mouseover", function(event, d) {
                 tooltip
                     .transition()
@@ -67,20 +74,24 @@
                     .html(`App: <strong>${d.app}</strong><br>Duration: <strong>${d.duration.toFixed(2)}</strong> hours`)
                     .style("left", (event.pageX) + "px")
                     .style("top", (event.pageY - 28) + "px");
+                // @ts-ignore
                 d3.select(this) 
                     .attr("fill", "#cacaca")
                     .attr("cursor", "pointer");
             })
+            // @ts-ignore
             .on("mousemove", function(event) {
                 tooltip
                     .style("top", `${event.pageY - 10}px`)
                     .style("left", `${event.pageX + 10}px`);
             })
+            // @ts-ignore
             .on("mouseout", function(d) {
                 tooltip
                     .transition()
                     .duration(500)
                     .style("opacity", 0);
+                // @ts-ignore
                 d3.select(this)
                     .attr("fill", "#e9e9e9")
                     .attr("cursor", "default");
