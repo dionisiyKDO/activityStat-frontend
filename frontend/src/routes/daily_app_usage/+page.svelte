@@ -10,7 +10,7 @@
     let waiting = $state('Loading...');
 
     async function getTableItems() {
-        const response = await fetch("/api/spent_time");
+        const response = await fetch("/api/daily_app_usage/chrome.exe");
         const r = JSON.parse( 
             await response.json(), // returns a promise
             (key, value) => typeof value === "number" ? Math.round(value * 100) / 100 : value // rounding
@@ -30,6 +30,6 @@
 <main>
 	{#if data.length > 0}
 		<D3Chart {data} />
-		<Table {data} {waiting} />
+		<!-- <Table {data} {waiting} /> -->
 	{/if}
 </main>
