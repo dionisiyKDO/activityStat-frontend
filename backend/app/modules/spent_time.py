@@ -1,9 +1,8 @@
 import pandas as pd
+import json
 
 def spent_time(df_og: pd.DataFrame, start_date: str = None, end_date: str = None, min_duration: float = 10.0) -> pd.DataFrame:
-    '''Calculates the total time spent on each application'''
-    # TODO use 'start_date' and 'end_date' to filter buckets
-    
+    '''Calculates the total time spent on each application'''    
     # Convert 'timestamp' to datetime
     df_og['timestamp'] = pd.to_datetime(df_og['timestamp'], format='ISO8601')
 
@@ -30,5 +29,10 @@ def spent_time(df_og: pd.DataFrame, start_date: str = None, end_date: str = None
 
     # Sort again after possible aggregation
     df_events.sort_values('duration', ascending=False, inplace=True)
+
+    with open('./data/app_title_map.json', 'r') as json_file:
+        app_title_map = json.load(json_file)
+
+    df_events['title'] = df_events['app'].map(app_title_map)
 
     return df_events

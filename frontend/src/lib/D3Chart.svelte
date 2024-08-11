@@ -1,5 +1,5 @@
 <script>
-    // @ts-ignore
+    // @ts-nocheck
     import * as d3 from "d3";
     import { onMount } from "svelte";
 
@@ -9,10 +9,10 @@
     // TODO : loading something for first request
     onMount(() => {
         // Setting up the SVG container dimensions
-        const container = d3.select(".chart-container");
+        const container = d3.select("#chart-container");
         const width = container.node().getBoundingClientRect().width;
         const height = 400;
-        const margin = { top: 10, right: 30, bottom: 100, left: 40 };
+        const margin = { top: 10, right: 60, bottom: 100, left: 60 };
 
         const svg = d3
             .select("#spent-time-chart")                             // select the SVG element
@@ -22,14 +22,12 @@
         
         // Create a scale for the x-axis (applications)
         const x = d3.scaleBand()
-            // @ts-ignore
-            .domain(data.map(d => d.app))                            // select data
+            .domain(data.map(d => d.title))                          // select data
             .range([margin.left, width - margin.right])              // set range
             .padding(0.05);                                          // add padding
 
         // Create a scale for the y-axis (duration)
         const y = d3.scaleLinear()
-            // @ts-ignore
             .domain([0, d3.max(data, d => d.duration)])              // select data
             .range([height - margin.bottom, margin.top])             // set range
             .nice();                                                 // set highest y value a nice round number 
@@ -41,8 +39,9 @@
             .attr("transform", `translate(0,${height - margin.bottom})`)    // y-axis position
             .call(d3.axisBottom(x))                                         // x-axis
             .selectAll("text")                          // select all labels
-                .attr("transform", "rotate(-45)")       // rotate selected labels
-                .style("text-anchor", "end");           // make so end of the label is at the x-axis line (position anchor is at the end of the label)
+                .attr("transform", "rotate(-40)")       // rotate selected labels
+                .style("text-anchor", "end")
+                .style("font-size", "1.1em");           // make so end of the label is at the x-axis line (position anchor is at the end of the label)
 
         // Add the y-axis to the SVG
         svg.append("g")
@@ -55,43 +54,35 @@
             .data(data)                                 // bind data ('create' bars for each entrie in data)
             .enter().append("rect")                     // append a 'rect' for each entrie and for each rect:
                 .attr("class", "bar")                       // add class 'bar'
-                // @ts-ignore
-                .attr("x", d => x(d.app))                   // set x position
-                // @ts-ignore
+                .attr("x", d => x(d.title))                   // set x position
                 .attr("y", d => y(d.duration))              // set y position
                 .attr("width", x.bandwidth())               // set width
-                // @ts-ignore
                 .attr("height", d => y(0) - y(d.duration))  // set height
                 .attr("fill", "#e9e9e9")                    // set color
                 .attr("transition", "all 0.5s ease")             // add transition
-            // @ts-ignore
             .on("mouseover", function(event, d) {
                 tooltip
                     .transition()
                     .duration(200)
                     .style("opacity", 1);
                 tooltip
-                    .html(`App: <strong>${d.app}</strong><br>Duration: <strong>${d.duration.toFixed(2)}</strong> hours`)
+                    .html(`Title: <strong>${d.title}</strong><br>App: <strong>${d.app}</strong><br>Duration: <strong>${d.duration.toFixed(2)}</strong> hours`)
                     .style("left", (event.pageX) + "px")
                     .style("top", (event.pageY - 28) + "px");
-                // @ts-ignore
                 d3.select(this) 
                     .attr("fill", "#cacaca")
                     .attr("cursor", "pointer");
             })
-            // @ts-ignore
             .on("mousemove", function(event) {
                 tooltip
                     .style("top", `${event.pageY - 10}px`)
                     .style("left", `${event.pageX + 10}px`);
             })
-            // @ts-ignore
             .on("mouseout", function(d) {
                 tooltip
                     .transition()
                     .duration(500)
                     .style("opacity", 0);
-                // @ts-ignore
                 d3.select(this)
                     .attr("fill", "#e9e9e9")
                     .attr("cursor", "default");
@@ -113,7 +104,7 @@
     });
 </script>
 
-<div class="chart-container">
+<div id="chart-container">
     <svg id="spent-time-chart"></svg>
 </div>
 
@@ -122,7 +113,7 @@
         font: 10px sans-serif;
     }
 
-    .axis path,
+    /* .axis path,
     .axis line {
         fill: none;
         shape-rendering: crispEdges;
@@ -138,5 +129,5 @@
         border: 0px;
         border-radius: 8px;
         pointer-events: none;
-    }
+    } */
 </style>

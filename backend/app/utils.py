@@ -12,6 +12,55 @@ pd.options.display.precision = 2
 data_path = os.path.join('data', 'aw-buckets-export.json')
 cache_path = os.path.join('data', 'cache')
 
+def create_app_title_mapping() -> dict:
+    app_title_map = {
+        "chrome.exe": "Google Chrome",
+        "Discord.exe": "Discord",
+        "StarRail.exe": "Honkai: Star Rail",
+        "GenshinImpact.exe": "Genshin Impact",
+        "League of Legends.exe": "League of Legends",
+        "Telegram.exe": "Telegram",
+        "dnplayer.exe": "LDPlayer",
+        "Spotify.exe": "Spotify",
+        "Code.exe": "Visual Studio Code",
+        "explorer.exe": "File Explorer",
+        "bg3_dx11.exe": "Baldur's Gate 3",
+        "WINWORD.EXE": "Microsoft Word",
+        "Obsidian.exe": "Obsidian",
+        "reverse1999.exe": "Reverse 1999",
+        "FortniteClient-Win64-Shipping.exe": "Fortnite",
+        "Client-Win64-Shipping.exe": "Wuthering Waves",
+        "nikke.exe": "Goddess of Victory: Nikke",
+        "ZenlessZoneZero.exe": "Zenless Zone Zero",
+        "LeagueClientUx.exe": "League Client",
+        "Overwatch.exe": "Overwatch",
+        "Risk of Rain 2.exe": "Risk of Rain 2",
+        "steamwebhelper.exe": "Steam Web Helper",
+        "Gunfire Reborn.exe": "Gunfire Reborn",
+        "Hades2.exe": "Hades 2",
+        "msedge.exe": "Microsoft Edge",
+        "ShellExperienceHost.exe": "Windows Shell Experience",
+        "vlc.exe": "VLC Media Player",
+        "r5apex.exe": "Apex Legends",
+        "VALORANT-Win64-Shipping.exe": "Valorant",
+        "EXCEL.EXE": "Microsoft Excel",
+        "DevilMayCry5.exe": "Devil May Cry 5",
+        "Risk of Rain Returns.exe": "Risk of Rain Returns",
+        "dotnet.exe": ".NET Core",
+        "AniLibrix.exe": "AniLibrix",
+        "sai2.exe": "PaintTool SAI 2",
+        "acad.exe": "AutoCAD",
+        "Zoom.exe": "Zoom",
+        "OuterWilds.exe": "Outer Wilds",
+        "ui32.exe": "Wallpaper Engine",
+        "Heretics Fork.exe": "Heretic's Fork"
+    }
+
+    # Write the mapping to a JSON file
+    with open('./backend/app/data/app_title_map.json', 'w') as json_file:
+        json.dump(app_title_map, json_file)
+
+
 def __get_df(path=data_path) -> pd.DataFrame:
     try:
         df = pd.read_json(path_or_buf=path)
@@ -113,3 +162,7 @@ def get_daily_app_usage(app_name: str = 'chrome.exe'):
         result = daily_app_usage(df, app_name)
         __save_cache(data=result, file_path=file_path)
         return result.to_json(orient='records')
+
+
+if __name__ == '__main__':
+    create_app_title_mapping()

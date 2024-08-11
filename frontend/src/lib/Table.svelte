@@ -1,5 +1,4 @@
 <script>
-    import { onMount } from "svelte";
     export let data;
     export let waiting;
 </script>
@@ -17,7 +16,11 @@
             <tbody>
                 {#each data as entrie}
                     <tr>
-                        <td>{entrie.app}</td>
+                        {#if (entrie.title) }
+                            <td>{entrie.title}</td>
+                        {:else}
+                            <td>{entrie.app}</td>
+                        {/if}
                         <td>{entrie.duration}</td>
                     </tr>
                 {/each}
