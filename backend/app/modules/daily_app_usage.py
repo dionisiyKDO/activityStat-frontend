@@ -2,6 +2,8 @@ import pandas as pd
 
 def daily_app_usage(df_events: pd.DataFrame, app_name: str = 'chrome.exe'):
     """Calculates the time spent on a specified application each day."""
+    # TODO: Add support for multiple apps (save cache for one app, multiple without cache)
+    
     # Ensure the necessary columns are present
     required_columns = {'timestamp', 'app', 'duration'}
     if not required_columns.issubset(df_events.columns):
