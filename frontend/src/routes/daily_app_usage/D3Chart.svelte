@@ -8,13 +8,13 @@
 
 
     let app = $state("c");
-    let startDate = $state('2020-01-01');
-    let endDate = $state('2024-08-11');
+    let start_date = $state('2020-01-01');
+    let end_date = $state('2024-08-11');
     let filteredData = $derived(
         data.filter(d => {
             const date = new Date(d.timestamp);
             d.date = date.toISOString().split('T')[0]; // create date string
-            return date >= new Date(startDate) && date <= new Date(endDate);
+            return date >= new Date(start_date) && date <= new Date(end_date);
         })
     );
 
@@ -103,16 +103,59 @@
                         .x(function(d) { return x(d.date); })
                         .y(function(d) { return y(+d.duration); })
                         (d[1])
-                    })
+                    });
+    }
 
+    let startDate = $derived(new Date(start_date));
+    let endDate = $derived(new Date(end_date));
+
+    // Convert date to a numeric value for the range slider
+    let minDate = new Date('2023-01-01').getTime(); // Minimum date
+    let maxDate = new Date('2025-12-31').getTime(); // Maximum date
+    let startDateNumeric = startDate.getTime();
+    let endDateNumeric = endDate.getTime();
+
+    function updateStartDate(event) {
+        startDateNumeric = Number(event.target.value);
+        start_date = new Date(startDateNumeric).toISOString().split('T')[0];
+        drawChart();
+    }
+
+    function updateEndDate(event) {
+        endDateNumeric = Number(event.target.value);
+        end_date = new Date(endDateNumeric).toISOString().split('T')[0];
+        drawChart();
     }
 </script>
 
 <div id="container">
     <input id="app" type="text" bind:value={app} />
-    <input type="date" id="start" bind:value={startDate} />
-    <input type="date" id="end" bind:value={endDate} />
-
+    <!-- <input type="date" id="start" bind:value={startDate} />
+    <input type="date" id="end" bind:value={endDate} /> -->
+    <div class="slider-container">
+        <input 
+          type="range" 
+          min={minDate} 
+          max={maxDate} 
+          bind:value={startDateNumeric} 
+          oninput={updateStartDate} 
+          class="slider" 
+        />
+      
+        <input 
+          type="range" 
+          min={minDate} 
+          max={maxDate} 
+          bind:value={endDateNumeric} 
+          oninput={updateEndDate} 
+          class="slider" 
+        />
+      
+        <div class="dates">
+          <span>Start Date: {start_date}</span>
+          <span>End Date: {end_date}</span>
+        </div>
+      </div>
     <button onclick={update}>Update</button>
     <svg id="chart" width="800" height="400"></svg>
 </div>
