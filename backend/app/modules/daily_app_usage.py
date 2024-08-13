@@ -4,14 +4,14 @@ def daily_app_usage(df_events: pd.DataFrame, app_name: str = 'chrome.exe'):
     """Calculates the time spent on a specified application each day."""
     # TODO: Add support for multiple apps (save cache for one app, multiple without cache)
     
+    # Check if the app_name is present in the DataFrame
+    if app_name not in df_events['app'].unique():
+        raise ValueError(f"The app_name '{app_name}' is not present in the DataFrame.")
+    
     # Ensure the necessary columns are present
     required_columns = {'timestamp', 'app', 'duration'}
     if not required_columns.issubset(df_events.columns):
         raise ValueError(f"Input DataFrame must contain the following columns: {required_columns}")
-    
-    # Check if the app_name is present in the DataFrame
-    if app_name not in df_events['app'].unique():
-        raise ValueError(f"The app_name '{app_name}' is not present in the DataFrame.")
     
     # Convert 'timestamp' to datetime and extract date part
     df_events['timestamp'] = pd.to_datetime(df_events['timestamp'], format='ISO8601').dt.date
