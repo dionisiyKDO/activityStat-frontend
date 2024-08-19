@@ -73,46 +73,69 @@
         const container = d3.select("#container");
         const marginB = { top: 10, right: 30, bottom: 60, left: 60 };
         const widthB = container.node().getBoundingClientRect().width - marginB.left - marginB.right;
-        const heightB = 200 - marginB.top - marginB.bottom;
+        const heightB = 120 - marginB.top - marginB.bottom;
 
-        const svg_brush = d3.select("#brush")
+        const svgB = d3.select("#brush")
             .attr("viewBox", `0 0 ${widthB + marginB.left + marginB.right} ${heightB + marginB.top + marginB.bottom}`)
-            .attr("class", "brush");
+            .append("g")
+            .attr("transform", `translate(${marginB.left},${marginB.top})`);
 
         const x = d3.scaleTime()
             .range([0, widthB])
-            .domain(d3.extent(filteredData, d => d.date));
+            .domain(d3.extent(data, d => d.date));
 
-        const xAxis = svg_brush.append("g")
-            .attr("transform", `translate(${marginB.left},${heightB})`)
+        const xAxis = svgB.append("g")
+            .attr("transform", `translate(0,${heightB})`)
             .style("font-size", "14px")
             .call(d3.axisBottom(x)
                 .tickValues(x.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
                 .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
-            // .call(g => g.select(".domain").remove()) // Remove the x-axis line
+            .call(g => g.select(".domain").remove()) // Remove the x-axis line
             .selectAll(".tick line") // Select all tick lines
                 .style("stroke-opacity", 0);
 
+        svgB.selectAll(".tick text")
+            .style("fill", "#777");
+
+        // Add vertical gridlines
+        const xGrid = svgB.selectAll("xGrid")
+            .data(x.ticks())
+            .join("line")
+            .attr("x1", d => x(d))
+            .attr("x2", d => x(d))
+            .attr("y1", 0)
+            .attr("y2", heightB)
+            .attr("stroke", "#e0e0e0")
+            .attr("stroke-width", .5);
+
+        // Add border around the chart area
+        svgB.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", widthB)
+            .attr("height", heightB)
+            .attr("stroke", "#777")
+            .attr("fill", "none");
+
         // Create the brush
         const brush = d3.brushX()
-            .extent([[marginB.left, marginB.top], [widthB - marginB.right, heightB - marginB.bottom]])
+            .extent([[0, 0], [widthB, heightB]])
             .on("brush end", brushed);
 
         // Add the brush to the SVG
-        svg_brush.append('g')
+        svgB.append('g')
             .attr('class', 'brush')
             .call(brush);
 
         // Brush event handler
         function brushed({ selection }) {
             if (selection) {
-                const [x0, x1] = selection.map(x.invert);
-                console.log(x0, x1);
-                    
+                const [x0, x1] = selection.map(x.invert);                    
                 onBrush(x0, x1); // Pass selected range back to parent component
             }
         }
     }
+
 
     function onBrush(x0, x1) {
         start_date_input = new Date(x0).toISOString().split('T')[0];
@@ -178,7 +201,7 @@
             .attr("stroke-width", .5);
             
         // Add horizontal gridlines
-        svg.selectAll("yGrid")
+        const yGrid = svg.selectAll("yGrid")
             .data(y.ticks())
             .join("line")
             .attr("x1", 0)
