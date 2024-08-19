@@ -7,17 +7,11 @@
     let filteredData = $derived(
         data.filter(d => {
             const date = new Date(d.timestamp);
-            // d.date = date.toISOString().split('T')[0]; // create date string
             d.date = date;
             return date >= new Date(start_date_input) && date <= new Date(end_date_input);
         })
     );
-    async function fetchData() {
-        const response = await fetch("/api/daily_app_usage/" + app);
-        const r = JSON.parse(await response.json(),
-                            (key, value) => typeof value === "number" ? Math.round(value * 100) / 100 : value); // round numbers to 2 decimals
-        return r;
-    }
+    
 
     let app = $state("chrome.exe");
     let start_date_input = $state('2023-02-01');  // TODO: calculate start date automatically
@@ -33,6 +27,7 @@
     let endDateNumeric   = $state(endDate.getTime());
 
     let svg, xScale, xAxis, width, height, margin = $state();
+    // TODO margin and consts move here, brush consts calc from there
 
     // TODO : make input (selector) for avaible apps to include/exclude from the chart
     // TODO : Consider updating only the X-axis limits instead of fully redrawing the chart
@@ -42,105 +37,26 @@
         // TODO : add a ceiling for the chart Y-axis data (so X-axis limits dont change Y-axis range)
         // TODO : remove apps from legends, so their lines wouldnt be visible
 
+    async function fetchData() {
+        const response = await fetch("/api/daily_app_usage/" + app);
+        const roundedData = JSON.parse(await response.json(), (key, value) => 
+            typeof value === "number" ? Math.round(value * 100) / 100 : value
+        ); // round numbers to 2 decimals
+        return roundedData;
+    }
+
     onMount(() => {
+        getData()
+    });
+
+    function getData(event) {
         fetchData().then(r => {
             data = r;
+            start_date_input = '2023-02-01';  // TODO: calculate start date automatically
+            end_date_input   = '2024-08-11';  // TODO: set end date to today 
             drawChart();
             drawBrush();
         });
-    });
-
-    function updateStartDate(event) {
-        startDateNumeric = Number(event.target.value);
-        start_date_input = new Date(startDateNumeric).toISOString().split('T')[0];
-        drawChart();
-    }
-
-    function updateEndDate(event) {
-        endDateNumeric = Number(event.target.value);
-        end_date_input = new Date(endDateNumeric).toISOString().split('T')[0];
-        drawChart();
-    }
-
-    function update(event) {
-        fetchData().then(r => {
-            data = r;
-            drawChart();
-        });
-    }
-
-    function drawBrush() {
-        const container = d3.select("#container");
-        const marginB = { top: 10, right: 30, bottom: 60, left: 60 };
-        const widthB = container.node().getBoundingClientRect().width - marginB.left - marginB.right;
-        const heightB = 120 - marginB.top - marginB.bottom;
-
-        const svgB = d3.select("#brush")
-            .attr("viewBox", `0 0 ${widthB + marginB.left + marginB.right} ${heightB + marginB.top + marginB.bottom}`)
-            .append("g")
-            .attr("transform", `translate(${marginB.left},${marginB.top})`);
-
-        const x = d3.scaleTime()
-            .range([0, widthB])
-            .domain(d3.extent(data, d => d.date));
-
-        const xAxis = svgB.append("g")
-            .attr("transform", `translate(0,${heightB})`)
-            .style("font-size", "14px")
-            .call(d3.axisBottom(x)
-                .tickValues(x.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
-                .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
-            .call(g => g.select(".domain").remove()) // Remove the x-axis line
-            .selectAll(".tick line") // Select all tick lines
-                .style("stroke-opacity", 0);
-
-        svgB.selectAll(".tick text")
-            .style("fill", "#777");
-
-        // Add vertical gridlines
-        const xGrid = svgB.selectAll("xGrid")
-            .data(x.ticks())
-            .join("line")
-            .attr("x1", d => x(d))
-            .attr("x2", d => x(d))
-            .attr("y1", 0)
-            .attr("y2", heightB)
-            .attr("stroke", "#e0e0e0")
-            .attr("stroke-width", .5);
-
-        // Add border around the chart area
-        svgB.append("rect")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", widthB)
-            .attr("height", heightB)
-            .attr("stroke", "#777")
-            .attr("fill", "none");
-
-        // Create the brush
-        const brush = d3.brushX()
-            .extent([[0, 0], [widthB, heightB]])
-            .on("brush end", brushed);
-
-        // Add the brush to the SVG
-        svgB.append('g')
-            .attr('class', 'brush')
-            .call(brush);
-
-        // Brush event handler
-        function brushed({ selection }) {
-            if (selection) {
-                const [x0, x1] = selection.map(x.invert);                    
-                onBrush(x0, x1); // Pass selected range back to parent component
-            }
-        }
-    }
-
-
-    function onBrush(x0, x1) {
-        start_date_input = new Date(x0).toISOString().split('T')[0];
-        end_date_input = new Date(x1).toISOString().split('T')[0];
-        drawChart();
     }
 
     function drawChart() {
@@ -148,7 +64,7 @@
         d3.select("#chart").selectAll("*").remove();
 
         const container = d3.select("#container");
-        margin = { top: 10, right: 30, bottom: 60, left: 60 };
+        margin = { top: 10, right: 30, bottom: 30, left: 60 };
         width = container.node().getBoundingClientRect().width - margin.left - margin.right;
         height = 400 - margin.top - margin.bottom;
 
@@ -198,7 +114,8 @@
             .attr("y1", 0)
             .attr("y2", height)
             .attr("stroke", "#e0e0e0")
-            .attr("stroke-width", .5);
+            .attr("stroke-width", .5)
+            .attr("stroke-opacity", .33);
             
         // Add horizontal gridlines
         const yGrid = svg.selectAll("yGrid")
@@ -210,6 +127,7 @@
             .attr("y2", d => y(d))
             .attr("stroke", "#e0e0e0")
             .attr("stroke-width", .5)
+            .attr("stroke-opacity", .33);
         
         // Add Y-axis label
         svg.append("text")
@@ -223,6 +141,14 @@
             .style("font-family", "sans-serif")
             .text("Duration");
 
+        // Add border around the chart area
+        svg.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", width)
+            .attr("height", height)
+            .attr("stroke", "#777")
+            .attr("fill", "none");
 
         // Add the line path
         svg.selectAll(".line")
@@ -260,6 +186,8 @@
             .on('mouseout', removeTooltip);
 
         // Function to draw the tooltip
+        // TODO : Color the tooltip text based on the app line color
+        // TODO : Draw circle on the closest data point when the mouse hovers over the line
         function drawTooltip(event) {
             const [mouseXsvg, mouseYsvg] = d3.pointer(event); // Get mouse position
             const mouseX = event.clientX;
@@ -319,7 +247,8 @@
                 .attr("y1", 0)
                 .attr("y2", height)
                 .attr("stroke", "#aaa")
-                .attr("stroke-width", 1);
+                .attr("stroke-width", 1)
+                .attr("stroke-opacity", .66);
             }
 
         function removeTooltip() {
@@ -329,76 +258,148 @@
 
     }
 
-    // for the future
-    function updateXAxis() {
-        // Update xScale domain based on new start and end dates
-        xScale.domain([
-            new Date(startDateNumeric), 
-            new Date(endDateNumeric)
-        ]);
 
-        // Select and update the x-axis
+    function updateStartDate(event) {
+        startDateNumeric = Number(event.target.value);
+        start_date_input = new Date(startDateNumeric).toISOString().split('T')[0];
+        updateChart();
+    }
+
+    function updateEndDate(event) {
+        endDateNumeric = Number(event.target.value);
+        end_date_input = new Date(endDateNumeric).toISOString().split('T')[0];
+        updateChart();
+    }
+
+    function updateChart() {
+        const newDomain = [new Date(startDateNumeric), new Date(endDateNumeric)];
+
+        // Update the x scale domain
+        x.domain(newDomain);
+
+        // Update the x-axis
         svg.select(".x-axis")
             .transition()
-            .duration(1000)
-            .call(xAxis);
+            .duration(750)
+            .call(d3.axisBottom(x)
+                .tickValues(x.ticks(d3.timeMonth.every(2))) // Adjust ticks every 2 months
+                .tickFormat(d3.timeFormat("%b %Y")));
 
-        // Update the lines to reflect the new xScale
-        svg.selectAll(".line")  // Make sure to select the correct paths
+        // Update the grid lines
+        svg.selectAll(".x-grid")
             .transition()
-            .duration(1000)
-            .attr("d", function(d){
-                return d3.line()
-                    .x(function(d) { return xScale(new Date(d.timestamp)); })
-                    .y(function(d) { return yScale(+d.duration); })
-                    (d[1]);
-            });
+            .duration(750)
+            .attr("x1", d => x(d))
+            .attr("x2", d => x(d));
+
+        // Update the lines with the new x scale
+        svg.selectAll(".line")
+            .transition()
+            .duration(750)
+            .attr("d", d => d3.line()
+                .x(d => x(new Date(d.timestamp)))
+                .y(d => y(d.duration))
+                (d[1])
+            );
+
+        // Adjust the tooltip behavior
+        listeningRect
+            .on('mousemove', drawTooltip)
+            .on('mouseout', removeTooltip);
+    }
+
+    
+
+    function drawBrush() {
+        // TODO : double click to reset start and end date
+
+        // Delete old chart if it exists
+        d3.select("#brush").selectAll("*").remove();
+
+        const container = d3.select("#container");
+        const marginB = { top: 0, right: 30, bottom: 25, left: 60 };
+        const widthB = container.node().getBoundingClientRect().width - marginB.left - marginB.right;
+        const heightB = 70 - marginB.top - marginB.bottom;
+
+        const svgB = d3.select("#brush")
+            .attr("viewBox", `0 0 ${widthB + marginB.left + marginB.right} ${heightB + marginB.top + marginB.bottom}`)
+            .append("g")
+            .attr("transform", `translate(${marginB.left},${marginB.top})`);
+
+        const x = d3.scaleTime()
+            .range([0, widthB])
+            .domain(d3.extent(data, d => d.date));
+
+        const xAxis = svgB.append("g")
+            .attr("transform", `translate(0,${heightB})`)
+            .style("font-size", "14px")
+            .call(d3.axisBottom(x)
+                .tickValues(x.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
+                .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
+            .call(g => g.select(".domain").remove()) // Remove the x-axis line
+            .selectAll(".tick line") // Select all tick lines
+                .style("stroke-opacity", 0);
+
+        svgB.selectAll(".tick text")
+            .style("fill", "#777");
+
+        // Add vertical gridlines
+        const xGrid = svgB.selectAll("xGrid")
+            .data(x.ticks())
+            .join("line")
+            .attr("x1", d => x(d))
+            .attr("x2", d => x(d))
+            .attr("y1", 0)
+            .attr("y2", heightB)
+            .attr("stroke", "#e0e0e0")
+            .attr("stroke-width", .5)
+            .attr("stroke-opacity", .33);
+
+        // Add border around the chart area
+        svgB.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", widthB)
+            .attr("height", heightB)
+            .attr("stroke", "#777")
+            .attr("fill", "none");
+
+        // Create the brush
+        const brush = d3.brushX()
+            .extent([[0, 0], [widthB, heightB]])
+            .on("brush end", brushed);
+
+        // Add the brush to the SVG
+        svgB.append('g')
+            .attr('class', 'brush')
+            .call(brush);
+
+        // Brush event handler
+        function brushed({ selection }) {
+            if (selection) {
+                const [x0, x1] = selection.map(x.invert);                    
+                start_date_input = new Date(x0).toISOString().split('T')[0];
+                end_date_input = new Date(x1).toISOString().split('T')[0];
+                drawChart();
+            }
+        }
     }
 </script>
 
 <div id="container">
-    <div class="app"><input id="app" type="text" bind:value={app} onfocusout={update} /></div>
-    <!-- 
-    <input type="date" id="start" bind:value={startDate} />
-    <input type="date" id="end" bind:value={endDate} /> 
-    -->
-    <div class="slider-container">
-        <div class="dates">
-            <input 
-              type="range" 
-              min={minDate} 
-              max={maxDate} 
-              bind:value={startDateNumeric} 
-              oninput={updateStartDate} 
-              class="slider" 
-            />
-            <span>Start Date: {start_date_input}</span>
-        </div>
-      
-        <div class="dates">
-            <input 
-              type="range" 
-              min={minDate} 
-              max={maxDate} 
-              bind:value={endDateNumeric} 
-              oninput={updateEndDate} 
-              class="slider" 
-            />
-            <span>End Date: {end_date_input}</span>
-        </div>
+    <div class="app"><input id="app" type="text" bind:value={app} onfocusout={getData} /></div>
+    <div class="date-container">
+        <span>Start Date: {start_date_input}</span>
+        <span>End Date: {end_date_input}</span>
     </div>
 
     <svg id="brush"></svg>
     <svg id="chart"></svg>
-    <div id="tooltip"></div >
-
+    <div id="tooltip"></div>
 </div>
 
 
 <style>
-    div {
-        margin-bottom: 10px;
-    }
     .app {
         display: flex;
         justify-content: center;
@@ -413,19 +414,11 @@
         font-size: 1.2em;
         background-color: #222222;
     }
-    .slider-container {
+    .date-container {
         display: flex;
-        justify-content: center;
+        justify-content: space-around;
         align-items: center;
-    }
-    .dates {
-        width: 40%;
-        margin: 10px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    .dates input {
-        width: 100%;
+        font-size: 1.2em;
+        padding: 20px;
     }
 </style>
