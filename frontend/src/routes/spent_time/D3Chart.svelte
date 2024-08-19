@@ -77,7 +77,7 @@
                     .style("top", `${event.pageY - 10}px`)
                     .style("left", `${event.pageX + 10}px`);
             })
-            .on("mouseout", function(d) {
+            .on("mouseleave", function(d) {
                 tooltip
                     .transition()
                     .duration(500)
