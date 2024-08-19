@@ -7,8 +7,8 @@
     let filteredData = $derived(
         data.filter(d => {
             const date = new Date(d.timestamp);
-            d.date = date.toISOString().split('T')[0]; // create date string
-            d.date = date; // create date string
+            // d.date = date.toISOString().split('T')[0]; // create date string
+            d.date = date;
             return date >= new Date(start_date_input) && date <= new Date(end_date_input);
         })
     );
@@ -46,6 +46,7 @@
         fetchData().then(r => {
             data = r;
             drawChart();
+            drawBrush();
         });
     });
 
@@ -68,6 +69,57 @@
         });
     }
 
+    function drawBrush() {
+        const container = d3.select("#container");
+        const marginB = { top: 10, right: 30, bottom: 60, left: 60 };
+        const widthB = container.node().getBoundingClientRect().width - marginB.left - marginB.right;
+        const heightB = 200 - marginB.top - marginB.bottom;
+
+        const svg_brush = d3.select("#brush")
+            .attr("viewBox", `0 0 ${widthB + marginB.left + marginB.right} ${heightB + marginB.top + marginB.bottom}`)
+            .attr("class", "brush");
+
+        const x = d3.scaleTime()
+            .range([0, widthB])
+            .domain(d3.extent(filteredData, d => d.date));
+
+        const xAxis = svg_brush.append("g")
+            .attr("transform", `translate(${marginB.left},${heightB})`)
+            .style("font-size", "14px")
+            .call(d3.axisBottom(x)
+                .tickValues(x.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
+                .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
+            // .call(g => g.select(".domain").remove()) // Remove the x-axis line
+            .selectAll(".tick line") // Select all tick lines
+                .style("stroke-opacity", 0);
+
+        // Create the brush
+        const brush = d3.brushX()
+            .extent([[marginB.left, marginB.top], [widthB - marginB.right, heightB - marginB.bottom]])
+            .on("brush end", brushed);
+
+        // Add the brush to the SVG
+        svg_brush.append('g')
+            .attr('class', 'brush')
+            .call(brush);
+
+        // Brush event handler
+        function brushed({ selection }) {
+            if (selection) {
+                const [x0, x1] = selection.map(x.invert);
+                console.log(x0, x1);
+                    
+                onBrush(x0, x1); // Pass selected range back to parent component
+            }
+        }
+    }
+
+    function onBrush(x0, x1) {
+        start_date_input = new Date(x0).toISOString().split('T')[0];
+        end_date_input = new Date(x1).toISOString().split('T')[0];
+        drawChart();
+    }
+
     function drawChart() {
         // Delete old chart if it exists
         d3.select("#chart").selectAll("*").remove();
@@ -87,16 +139,12 @@
 
         const x = d3.scaleTime()
             .range([0, width])
-            .domain(d3.extent(data, d => d.date));
+            .domain(d3.extent(filteredData, d => d.date));
 
         const y = d3.scaleLinear()
             .range([height, 0])
             .domain([0, d3.max(filteredData, d => d.duration)])
             .nice();
-
-        const line = d3.line()
-            .x(d => x(d.date))
-            .y(d => y(d.duration));
 
         const xAxis = svg.append("g")
             .attr("transform", `translate(0,${height})`)
@@ -317,6 +365,7 @@
         </div>
     </div>
 
+    <svg id="brush"></svg>
     <svg id="chart"></svg>
     <div id="tooltip"></div >
 
