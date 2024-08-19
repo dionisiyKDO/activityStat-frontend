@@ -40,6 +40,7 @@
     // TODO Chart
         // TODO : fix chart to display zero usage hours between 13th and 20th, instead of a continuous line from 4h (13th) to 4h (20th)
         // TODO : add a ceiling for the chart Y-axis data (so X-axis limits dont change Y-axis range)
+        // TODO : remove apps from legends, so their lines wouldnt be visible
 
     onMount(() => {
         fetchData().then(r => {
