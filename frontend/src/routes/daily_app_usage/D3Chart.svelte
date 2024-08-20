@@ -12,12 +12,10 @@
         })
     );
     
-
     let app = $state("chrome.exe");
-    let start_date_input = $state('2023-02-01');  // TODO: calculate start date automatically
-    let end_date_input   = $state('2024-08-11');  // TODO: set end date to today 
+    let start_date_input = $state('1999-01-01');
+    let end_date_input   = $state('2050-01-01');
     
-    // TODO : rethink this variables
     let startDate = $derived(new Date(start_date_input));
     let endDate   = $derived(new Date(end_date_input));
 
@@ -26,7 +24,12 @@
     let startDateNumeric = $state(startDate.getTime());
     let endDateNumeric   = $state(endDate.getTime());
 
-    let svg, xScale, xAxis, width, height, margin = $state();
+    let svgC, xCScale, xCAxis, yCScale, yCAxis, widthC, heightC, marginC = $state();
+    let svgB, xBScale, xBAxis, widthB, heightB, marginB = $state();
+    
+    marginC = { top: 10, right: 30, bottom: 30, left: 60 };
+    marginB = { top: 0,  right: 30, bottom: 25, left: 60 };
+
     // TODO margin and consts move here, brush consts calc from there
 
     // TODO : make input (selector) for avaible apps to include/exclude from the chart
@@ -52,10 +55,9 @@
     function getData(event) {
         fetchData().then(r => {
             data = r;
-            start_date_input = '2023-02-01';  // TODO: calculate start date automatically
-            end_date_input   = '2024-08-11';  // TODO: set end date to today 
             drawChart();
             drawBrush();
+            [start_date_input, end_date_input] = d3.extent(data, d => d.date.toISOString().split('T')[0]);
         });
     }
 
@@ -64,76 +66,75 @@
         d3.select("#chart").selectAll("*").remove();
 
         const container = d3.select("#container");
-        margin = { top: 10, right: 30, bottom: 30, left: 60 };
-        width = container.node().getBoundingClientRect().width - margin.left - margin.right;
-        height = 400 - margin.top - margin.bottom;
+        widthC   = container.node().getBoundingClientRect().width - marginC.left - marginC.right;
+        heightC = 400 - marginC.top - marginC.bottom;
 
-        svg = d3.select("#chart")
-            .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        svgC = d3.select("#chart")
+            .attr("viewBox", `0 0 ${widthC + marginC.left + marginC.right} ${heightC + marginC.top + marginC.bottom}`)
             .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
+            .attr("transform", `translate(${marginC.left},${marginC.top})`);
 
-        const sumstat = d3.group(filteredData, d => d.app); // group the data by app: I want to draw one line per app
-        const color = d3.scaleOrdinal().range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999']); // create color palette for different lines
+        const sumstat = d3.group(filteredData, d => d.app);
+        const color = d3.scaleOrdinal().range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999']);
 
-        const x = d3.scaleTime()
-            .range([0, width])
+        xCScale = d3.scaleTime()
+            .range([0, widthC])
             .domain(d3.extent(filteredData, d => d.date));
 
-        const y = d3.scaleLinear()
-            .range([height, 0])
-            .domain([0, d3.max(filteredData, d => d.duration)])
+        yCScale = d3.scaleLinear()
+            .range([heightC, 0])
+            .domain([0, d3.max(data, d => d.duration)]) 
             .nice();
 
-        const xAxis = svg.append("g")
-            .attr("transform", `translate(0,${height})`)
+        xCAxis = svgC.append("g")
+            .attr("transform", `translate(0,${heightC})`)
             .style("font-size", "14px")
-            .call(d3.axisBottom(x)
-                .tickValues(x.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
+            .call(d3.axisBottom(xCScale)
+                .tickValues(xCScale.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
                 .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
             .call(g => g.select(".domain").remove()) // Remove the x-axis line
             .selectAll(".tick line") // Select all tick lines
                 .style("stroke-opacity", 0);
 
-        const yAxis = svg.append("g")
+        yCAxis = svgC.append("g")
             .style("font-size", "14px")
-            .call(d3.axisLeft(y))
+            .call(d3.axisLeft(yCScale))
             .call(g => g.select(".domain").remove())
             .selectAll(".tick line") // Select all tick lines
                 .style("stroke-opacity", 0); // Remove the y-axis line
         
-        svg.selectAll(".tick text")
+        svgC.selectAll(".tick text")
             .style("fill", "#777");
 
         // Add vertical gridlines
-        const xGrid = svg.selectAll("xGrid")
-            .data(x.ticks().slice(1, -1))
+        const xCGrid = svgC.selectAll("xGrid")
+            .data(xCScale.ticks().slice(1, -1))
             .join("line")
-            .attr("x1", d => x(d))
-            .attr("x2", d => x(d))
+            .attr("x1", d => xCScale(d))
+            .attr("x2", d => xCScale(d))
             .attr("y1", 0)
-            .attr("y2", height)
+            .attr("y2", heightC)
             .attr("stroke", "#e0e0e0")
             .attr("stroke-width", .5)
             .attr("stroke-opacity", .33);
             
         // Add horizontal gridlines
-        const yGrid = svg.selectAll("yGrid")
-            .data(y.ticks())
+        const yCGrid = svgC.selectAll("yGrid")
+            .data(yCScale.ticks())
             .join("line")
             .attr("x1", 0)
-            .attr("x2", width)
-            .attr("y1", d => y(d))
-            .attr("y2", d => y(d))
+            .attr("x2", widthC)
+            .attr("y1", d => yCScale(d))
+            .attr("y2", d => yCScale(d))
             .attr("stroke", "#e0e0e0")
             .attr("stroke-width", .5)
             .attr("stroke-opacity", .33);
         
         // Add Y-axis label
-        svg.append("text")
+        svgC.append("text")
             .attr("transform", "rotate(-90)")
-            .attr("y", 0 - margin.left)
-            .attr("x", 0 - (height / 2))
+            .attr("y", 0 - marginC.left)
+            .attr("x", 0 - (heightC / 2))
             .attr("dy", "1em")
             .style("text-anchor", "middle")
             .style("font-size", "14px")
@@ -142,16 +143,16 @@
             .text("Duration");
 
         // Add border around the chart area
-        svg.append("rect")
+        svgC.append("rect")
             .attr("x", 0)
             .attr("y", 0)
-            .attr("width", width)
-            .attr("height", height)
+            .attr("width", widthC)
+            .attr("height", heightC)
             .attr("stroke", "#777")
             .attr("fill", "none");
 
         // Add the line path
-        svg.selectAll(".line")
+        svgC.selectAll(".line")
             .data(sumstat)
             .join("path")
                 .attr("fill", "none")
@@ -159,14 +160,14 @@
                 .attr("stroke-width", 1.5)
                 .attr("d", function(d){
                     return d3.line()
-                        .x(function(d) { return x(new Date(d.timestamp)); })
-                        .y(function(d) { return y(+d.duration); })
+                        .x(function(d) { return xCScale(new Date(d.timestamp)); })
+                        .y(function(d) { return yCScale(+d.duration); })
                         (d[1]);
                 });
         
 
 
-        const tooltipLine = svg.append('line');
+        const tooltipLine = svgC.append('line');
         const tooltip = d3.select('#tooltip').style('opacity', 0)
             .style('position', 'absolute')
             .style('z-index', '10')
@@ -178,9 +179,9 @@
             .style("border-radius", "2px")
             .style('box-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
 
-        const listeningRect = svg.append('rect')
-            .attr('width', width)
-            .attr('height', height)
+        const listeningRect = svgC.append('rect')
+            .attr('width', widthC)
+            .attr('height', heightC)
             .attr('opacity', 0)
             .on('mousemove', drawTooltip)
             .on('mouseout', removeTooltip);
@@ -192,18 +193,18 @@
             const [mouseXsvg, mouseYsvg] = d3.pointer(event); // Get mouse position
             const mouseX = event.clientX;
             const mouseY = event.clientY;
-            const xDate = x.invert(mouseXsvg); // Find the x position in date
+            const xDate = xCScale.invert(mouseXsvg); // Find the x position in date
             const sumstatArray = Array.from(sumstat);
 
             // Get the closest data points to the mouse x position for each line
             const points = sumstatArray.map(([key, values]) => {
-                const closestPoint = d3.least(values, d => Math.abs(x(d.date) - mouseXsvg));
+                const closestPoint = d3.least(values, d => Math.abs(xCScale(d.date) - mouseXsvg));
                 return {
                     app: key,
                     date: closestPoint.date,
                     duration: closestPoint.duration,
-                    x: x(closestPoint.date),
-                    y: y(closestPoint.duration)
+                    x: xCScale(closestPoint.date),
+                    y: yCScale(closestPoint.duration)
                 };
             });
 
@@ -245,7 +246,7 @@
                 .attr("x1", mouseXsvg)
                 .attr("x2", mouseXsvg)
                 .attr("y1", 0)
-                .attr("y2", height)
+                .attr("y2", heightC)
                 .attr("stroke", "#aaa")
                 .attr("stroke-width", 1)
                 .attr("stroke-opacity", .66);
@@ -268,6 +269,14 @@
     function updateEndDate(event) {
         endDateNumeric = Number(event.target.value);
         end_date_input = new Date(endDateNumeric).toISOString().split('T')[0];
+        updateChart();
+    }
+
+    function updateDates(event) {
+        endDateNumeric = Number(event.target.value);
+        startDateNumeric = Number(event.target.value);
+        end_date_input = new Date(endDateNumeric).toISOString().split('T')[0];
+        start_date_input = new Date(startDateNumeric).toISOString().split('T')[0];
         updateChart();
     }
 
@@ -312,29 +321,28 @@
 
     function drawBrush() {
         // TODO : double click to reset start and end date
-
+        
         // Delete old chart if it exists
         d3.select("#brush").selectAll("*").remove();
 
         const container = d3.select("#container");
-        const marginB = { top: 0, right: 30, bottom: 25, left: 60 };
-        const widthB = container.node().getBoundingClientRect().width - marginB.left - marginB.right;
-        const heightB = 70 - marginB.top - marginB.bottom;
+        widthB = container.node().getBoundingClientRect().width - marginB.left - marginB.right;
+        heightB = 70 - marginB.top - marginB.bottom;
 
-        const svgB = d3.select("#brush")
+        svgB = d3.select("#brush")
             .attr("viewBox", `0 0 ${widthB + marginB.left + marginB.right} ${heightB + marginB.top + marginB.bottom}`)
             .append("g")
             .attr("transform", `translate(${marginB.left},${marginB.top})`);
 
-        const x = d3.scaleTime()
+        xBScale = d3.scaleTime()
             .range([0, widthB])
             .domain(d3.extent(data, d => d.date));
 
-        const xAxis = svgB.append("g")
+        xBAxis = svgB.append("g")
             .attr("transform", `translate(0,${heightB})`)
             .style("font-size", "14px")
-            .call(d3.axisBottom(x)
-                .tickValues(x.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
+            .call(d3.axisBottom(xBScale)
+                .tickValues(xBScale.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
                 .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
             .call(g => g.select(".domain").remove()) // Remove the x-axis line
             .selectAll(".tick line") // Select all tick lines
@@ -344,11 +352,11 @@
             .style("fill", "#777");
 
         // Add vertical gridlines
-        const xGrid = svgB.selectAll("xGrid")
-            .data(x.ticks())
+        const xBGrid = svgB.selectAll("xGrid")
+            .data(xBScale.ticks())
             .join("line")
-            .attr("x1", d => x(d))
-            .attr("x2", d => x(d))
+            .attr("x1", d => xBScale(d))
+            .attr("x2", d => xBScale(d))
             .attr("y1", 0)
             .attr("y2", heightB)
             .attr("stroke", "#e0e0e0")
@@ -377,7 +385,7 @@
         // Brush event handler
         function brushed({ selection }) {
             if (selection) {
-                const [x0, x1] = selection.map(x.invert);                    
+                const [x0, x1] = selection.map(xBScale.invert);                    
                 start_date_input = new Date(x0).toISOString().split('T')[0];
                 end_date_input = new Date(x1).toISOString().split('T')[0];
                 drawChart();
