@@ -24,7 +24,7 @@
     let startDateNumeric = $state(startDate.getTime());
     let endDateNumeric   = $state(endDate.getTime());
 
-    let svgC, xCScale, xCAxis, yCScale, yCAxis, widthC, heightC, marginC = $state();
+    let svgC, sumstat, color, xCScale, xCAxis, yCScale, yCAxis, widthC, heightC, marginC = $state();
     let svgB, xBScale, xBAxis, widthB, heightB, marginB = $state();
     
     marginC = { top: 10, right: 30, bottom: 30, left: 60 };
@@ -45,6 +45,7 @@
         const roundedData = JSON.parse(await response.json(), (key, value) => 
             typeof value === "number" ? Math.round(value * 100) / 100 : value
         ); // round numbers to 2 decimals
+        data = roundedData;
         return roundedData;
     }
 
@@ -54,19 +55,21 @@
 
     function getData(event) {
         fetchData().then(r => {
-            data = r;
+            // TODO : look into updating start_date_input and end_date_input with the new data
+            // [start_date_input, end_date_input] = d3.extent(data, d => d.date.toISOString().split('T')[0]);
+            start_date_input = '1999-01-01';
+            end_date_input   = '2050-01-01';
             drawChart();
             drawBrush();
-            [start_date_input, end_date_input] = d3.extent(data, d => d.date.toISOString().split('T')[0]);
         });
     }
 
     function drawChart() {
         // Delete old chart if it exists
         d3.select("#chart").selectAll("*").remove();
-
+        // #region
         const container = d3.select("#container");
-        widthC   = container.node().getBoundingClientRect().width - marginC.left - marginC.right;
+        widthC  = container.node().getBoundingClientRect().width - marginC.left - marginC.right;
         heightC = 400 - marginC.top - marginC.bottom;
 
         svgC = d3.select("#chart")
@@ -74,8 +77,16 @@
             .append("g")
             .attr("transform", `translate(${marginC.left},${marginC.top})`);
 
-        const sumstat = d3.group(filteredData, d => d.app);
-        const color = d3.scaleOrdinal().range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999']);
+        // Define the clipPath
+        svgC.append("defs")
+            .append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", widthC)
+            .attr("height", heightC);
+
+        sumstat = d3.group(filteredData, d => d.app);
+        color = d3.scaleOrdinal().range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999']);
 
         xCScale = d3.scaleTime()
             .range([0, widthC])
@@ -151,21 +162,33 @@
             .attr("stroke", "#777")
             .attr("fill", "none");
 
+        // #endregion
+
         // Add the line path
         svgC.selectAll(".line")
-            .data(sumstat)
-            .join("path")
-                .attr("fill", "none")
-                .attr("stroke", function(d){ return color(d[0]); })
-                .attr("stroke-width", 1.5)
-                .attr("d", function(d){
-                    return d3.line()
-                        .x(function(d) { return xCScale(new Date(d.timestamp)); })
-                        .y(function(d) { return yCScale(+d.duration); })
-                        (d[1]);
-                });
+            .data(sumstat, d => d[0]) // Use the app name or unique identifier as the key
+            .join(
+                enter => enter.append("path") // Handle entering elements
+                    .attr("class", "line")
+                    .attr("fill", "none")
+                    .attr("stroke", d => color(d[0]))
+                    .attr("stroke-width", 1.5)
+                    .attr("clip-path", "url(#clip)") 
+                    .attr("d", d => d3.line()
+                        .x(d => xCScale(new Date(d.timestamp)))
+                        .y(d => yCScale(+d.duration))
+                        (d[1])),
+                update => update.transition() // Handle updating elements
+                    .duration(0) // Transition duration in ms
+                    .attr("clip-path", "url(#clip)")
+                    .attr("d", d => d3.line()
+                        .x(d => xCScale(new Date(d.timestamp)))
+                        .y(d => yCScale(+d.duration))
+                        (d[1])),
+                exit => exit.remove() // Handle exiting elements
+            );
         
-
+        // #region
 
         const tooltipLine = svgC.append('line');
         const tooltip = d3.select('#tooltip').style('opacity', 0)
@@ -256,68 +279,55 @@
             tooltip.style("opacity", 0);
             tooltipLine.attr("stroke-width", 0); // Hide the tooltip line
         }
-
+        // #endregion
     }
-
-
-    function updateStartDate(event) {
-        startDateNumeric = Number(event.target.value);
-        start_date_input = new Date(startDateNumeric).toISOString().split('T')[0];
-        updateChart();
-    }
-
-    function updateEndDate(event) {
-        endDateNumeric = Number(event.target.value);
-        end_date_input = new Date(endDateNumeric).toISOString().split('T')[0];
-        updateChart();
-    }
-
-    function updateDates(event) {
-        endDateNumeric = Number(event.target.value);
-        startDateNumeric = Number(event.target.value);
-        end_date_input = new Date(endDateNumeric).toISOString().split('T')[0];
-        start_date_input = new Date(startDateNumeric).toISOString().split('T')[0];
-        updateChart();
-    }
-
+        
     function updateChart() {
-        const newDomain = [new Date(startDateNumeric), new Date(endDateNumeric)];
+        const newDomain = [new Date(start_date_input), new Date(end_date_input)];
 
         // Update the x scale domain
-        x.domain(newDomain);
+        xCScale.domain(newDomain);
 
         // Update the x-axis
-        svg.select(".x-axis")
+        xCAxis
             .transition()
-            .duration(750)
-            .call(d3.axisBottom(x)
-                .tickValues(x.ticks(d3.timeMonth.every(2))) // Adjust ticks every 2 months
-                .tickFormat(d3.timeFormat("%b %Y")));
+            .duration(750)   
+            .call(d3.axisBottom(xCScale)
+                .tickValues(xCScale.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
+                .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
 
         // Update the grid lines
-        svg.selectAll(".x-grid")
+        svgC.selectAll(".x-grid")
             .transition()
-            .duration(750)
-            .attr("x1", d => x(d))
-            .attr("x2", d => x(d));
+            .duration(10)
+            .attr("x1", d => xCScale(d))
+            .attr("x2", d => xCScale(d));
 
         // Update the lines with the new x scale
-        svg.selectAll(".line")
-            .transition()
-            .duration(750)
-            .attr("d", d => d3.line()
-                .x(d => x(new Date(d.timestamp)))
-                .y(d => y(d.duration))
-                (d[1])
+        svgC.selectAll(".line")
+            .data(sumstat) // Use the app name or unique identifier as the key
+            .join(
+                enter => enter.append("path") // Handle entering elements
+                    .attr("class", "line")
+                    .attr("fill", "none")
+                    .attr("stroke", d => color(d[0]))
+                    .attr("stroke-width", 1.5)
+                    .attr("clip-path", "url(#clip)")
+                    .attr("d", d => d3.line()
+                        .x(d => xCScale(new Date(d.timestamp)))
+                        .y(d => yCScale(+d.duration))
+                        (d[1])),
+                update => update.transition() // Handle updating elements
+                    .duration(0) // Transition duration in ms
+                    .attr("clip-path", "url(#clip)")
+                    .attr("d", d => d3.line()
+                        .x(d => xCScale(new Date(d.timestamp)))
+                        .y(d => yCScale(+d.duration))
+                        (d[1])),
+                exit => exit.remove() // Handle exiting elements
             );
-
-        // Adjust the tooltip behavior
-        listeningRect
-            .on('mousemove', drawTooltip)
-            .on('mouseout', removeTooltip);
     }
 
-    
 
     function drawBrush() {
         // TODO : double click to reset start and end date
@@ -354,6 +364,7 @@
         // Add vertical gridlines
         const xBGrid = svgB.selectAll("xGrid")
             .data(xBScale.ticks())
+            .attr("class", "x-grid")
             .join("line")
             .attr("x1", d => xBScale(d))
             .attr("x2", d => xBScale(d))
@@ -388,7 +399,7 @@
                 const [x0, x1] = selection.map(xBScale.invert);                    
                 start_date_input = new Date(x0).toISOString().split('T')[0];
                 end_date_input = new Date(x1).toISOString().split('T')[0];
-                drawChart();
+                updateChart();
             }
         }
     }
