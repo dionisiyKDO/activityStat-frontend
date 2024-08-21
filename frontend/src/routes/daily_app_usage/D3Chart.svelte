@@ -12,9 +12,10 @@
         })
     );
     
-    let app = $state("chrome.exe");
+    let app = $state("test.exe");
     let start_date_input = $state('1999-01-01');
     let end_date_input   = $state('2050-01-01');
+    let notice = $state('(2024-06-13 -- 2024-06-19 doesnt exist)');
     
     let startDate = $derived(new Date(start_date_input));
     let endDate   = $derived(new Date(end_date_input));
@@ -30,15 +31,9 @@
     marginC = { top: 10, right: 30, bottom: 30, left: 60 };
     marginB = { top: 0,  right: 30, bottom: 25, left: 60 };
 
-    // TODO margin and consts move here, brush consts calc from there
+    let animDuration = 0;
 
     // TODO : make input (selector) for avaible apps to include/exclude from the chart
-    // TODO : Consider updating only the X-axis limits instead of fully redrawing the chart
-    // TODO : add notice (2024-06-13 -- 2024-06-19 doesnt exist)
-    // TODO Chart
-        // TODO : fix chart to display zero usage hours between 13th and 20th, instead of a continuous line from 4h (13th) to 4h (20th)
-        // TODO : add a ceiling for the chart Y-axis data (so X-axis limits dont change Y-axis range)
-        // TODO : remove apps from legends, so their lines wouldnt be visible
 
     async function fetchData() {
         const response = await fetch("/api/daily_app_usage/" + app);
@@ -134,7 +129,7 @@
                     .attr("x2", d => xCScale(d)),
                 update => update
                     .transition()
-                    .duration(0)
+                    .duration(animDuration)
                     .attr("x1", d => xCScale(d))
                     .attr("x2", d => xCScale(d)),
                 exit => exit.remove()
@@ -190,7 +185,7 @@
                         .y(d => yCScale(+d.duration))
                         (d[1])),
                 update => update.transition() // Handle updating elements
-                    .duration(0) // Transition duration in ms
+                    .duration(animDuration) // Transition duration in ms
                     .attr("clip-path", "url(#clip)")
                     .attr("d", d => d3.line()
                         .x(d => xCScale(new Date(d.timestamp)))
@@ -221,7 +216,6 @@
             .on('mouseout', removeTooltip);
 
         // Function to draw the tooltip
-        // TODO : Color the tooltip text based on the app line color
         // TODO : Draw circle on the closest data point when the mouse hovers over the line
         function drawTooltip(event) {
             const [mouseXsvg, mouseYsvg] = d3.pointer(event); // Get mouse position
@@ -238,7 +232,8 @@
                     date: closestPoint.date,
                     duration: closestPoint.duration,
                     x: xCScale(closestPoint.date),
-                    y: yCScale(closestPoint.duration)
+                    y: yCScale(closestPoint.duration),
+                    color: color(key) // Get the color for the line corresponding to the app
                 };
             });
 
@@ -266,14 +261,17 @@
                 .style("top", `${tooltipTop}px`)
                 .style("opacity", 1);
 
-            // TODO : tooltip date only once, color based on app, highlight the max value
-            const tooltipContent = points.map(point => 
+            let tooltipContent = `
+                <div>
+                    <strong>Date: </strong> ${d3.timeFormat("%b %d, %Y")(points[0].date)}<br><hr>
+                </div>`;
+            
+            tooltipContent = tooltipContent + points.map(point => 
                 `<div>
-                    <strong>${point.app}</strong><br>
-                    Date: ${d3.timeFormat("%b %d, %Y")(point.date)}<br>
-                    Duration: ${point.duration} Hours
+                    <strong style="color:${point.color}"> ${point.app} </strong> <br>
+                    Duration: ${point.duration === Math.max(...points.map(point => point.duration)) ? `<strong style="font-weight: 600; color: white">${point.duration} Hours</strong>` : `${point.duration} Hours`}
                 </div>`
-            ).join('<hr>');
+            ).join('<br>');
 
             tooltip.html(tooltipContent);
 
@@ -302,9 +300,7 @@
         xCScale.domain(newDomain);
 
         const dateRangeInDays = d3.timeDay.count(xCScale.domain()[0], xCScale.domain()[1]);
-        console.log(dateRangeInDays);
         
-
         // Set the tick interval based on the date range in days
         let tickInterval;
         if (dateRangeInDays > 365 * 5) { // If the range is greater than 5 years
@@ -331,7 +327,7 @@
             .attr("transform", `translate(0,${heightC})`)
             .style("font-size", "14px")
             .transition()
-            .duration(0)
+            .duration(animDuration)
             .call(d3.axisBottom(xCScale)
                 .tickValues(xCScale.ticks(tickInterval)) // Display ticks every 2 months
                 .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year;
@@ -354,7 +350,7 @@
                     .attr("stroke-opacity", .33),
                 update => update
                     .transition()
-                    .duration(0)
+                    .duration(animDuration)
                     .attr("x1", d => xCScale(d))
                     .attr("x2", d => xCScale(d)),
                 exit => exit.remove()
@@ -378,7 +374,7 @@
                         .y(d => yCScale(+d.duration))
                         (d[1])),
                 update => update.transition() // Handle updating elements
-                    .duration(0) // Transition duration in ms
+                    .duration(animDuration) // Transition duration in ms
                     .attr("clip-path", "url(#clip)")
                     .attr("d", d => d3.line()
                         .x(d => xCScale(new Date(d.timestamp)))
@@ -473,6 +469,7 @@
     </div>
 
     <svg id="brush"></svg>
+    <div id="notice">{notice}</div>
     <svg id="chart"></svg>
     <div id="tooltip"></div>
 </div>
@@ -499,5 +496,13 @@
         align-items: center;
         font-size: 1.2em;
         padding: 20px;
+    }
+
+    #notice {
+        text-align: center;
+        font-size: 0.8em;
+        color: #777;
+        margin-top: 10px;
+        margin-bottom: -4px;
     }
 </style>
