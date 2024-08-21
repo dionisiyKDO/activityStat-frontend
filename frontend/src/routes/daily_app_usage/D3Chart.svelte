@@ -98,6 +98,7 @@
             .nice();
 
         xCAxis = svgC.append("g")
+            .attr("class", "x-axis")
             .attr("transform", `translate(0,${heightC})`)
             .style("font-size", "14px")
             .call(d3.axisBottom(xCScale)
@@ -108,6 +109,7 @@
                 .style("stroke-opacity", 0);
 
         yCAxis = svgC.append("g")
+            .attr("class", "y-axis")
             .style("font-size", "14px")
             .call(d3.axisLeft(yCScale))
             .call(g => g.select(".domain").remove())
@@ -120,14 +122,23 @@
         // Add vertical gridlines
         const xCGrid = svgC.selectAll("xGrid")
             .data(xCScale.ticks().slice(1, -1))
-            .join("line")
-            .attr("x1", d => xCScale(d))
-            .attr("x2", d => xCScale(d))
-            .attr("y1", 0)
-            .attr("y2", heightC)
-            .attr("stroke", "#e0e0e0")
-            .attr("stroke-width", .5)
-            .attr("stroke-opacity", .33);
+            .join(
+                enter => enter.append("line")
+                    .attr("class", "x-grid")
+                    .attr("y1", 0)
+                    .attr("y2", heightC)
+                    .attr("stroke", "#e0e0e0")
+                    .attr("stroke-width", .5)
+                    .attr("stroke-opacity", .33)
+                    .attr("x1", d => xCScale(d))
+                    .attr("x2", d => xCScale(d)),
+                update => update
+                    .transition()
+                    .duration(0)
+                    .attr("x1", d => xCScale(d))
+                    .attr("x2", d => xCScale(d)),
+                exit => exit.remove()
+            );
             
         // Add horizontal gridlines
         const yCGrid = svgC.selectAll("yGrid")
@@ -249,11 +260,13 @@
                 tooltipTop = mouseY - tooltipHeight - 10;
             }
 
+            
             tooltip
                 .style("left", `${tooltipLeft}px`)
                 .style("top", `${tooltipTop}px`)
                 .style("opacity", 1);
 
+            // TODO : tooltip date only once, color based on app, highlight the max value
             const tooltipContent = points.map(point => 
                 `<div>
                     <strong>${point.app}</strong><br>
@@ -288,20 +301,67 @@
         // Update the x scale domain
         xCScale.domain(newDomain);
 
-        // Update the x-axis
-        xCAxis
-            .transition()
-            .duration(750)   
-            .call(d3.axisBottom(xCScale)
-                .tickValues(xCScale.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
-                .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
+        const dateRangeInDays = d3.timeDay.count(xCScale.domain()[0], xCScale.domain()[1]);
+        console.log(dateRangeInDays);
+        
 
-        // Update the grid lines
-        svgC.selectAll(".x-grid")
+        // Set the tick interval based on the date range in days
+        let tickInterval;
+        if (dateRangeInDays > 365 * 5) { // If the range is greater than 5 years
+            tickInterval = d3.timeYear.every(1); // Display ticks every year
+        } else if (dateRangeInDays > 365 * 2) { // If the range is between 2 and 5 years
+            tickInterval = d3.timeMonth.every(6); // Display ticks every 6 months
+        } else if (dateRangeInDays > 365) { // If the range is between 1 and 2 years
+            tickInterval = d3.timeMonth.every(2); // Display ticks every 3 months
+        } else if (dateRangeInDays > 180) { // If the range is between 6 months and 1 year
+            tickInterval = d3.timeMonth.every(1); // Display ticks every month
+        } else if (dateRangeInDays > 90) { // If the range is between 3 and 6 months
+            tickInterval = d3.timeWeek.every(2); // Display ticks every 2 weeks
+        } else if (dateRangeInDays > 30) { // If the range is between 1 and 3 months
+            tickInterval = d3.timeWeek.every(1); // Display ticks every week
+        } else if (dateRangeInDays > 10) { // If the range is between 10 days and 1 month
+            tickInterval = d3.timeDay.every(2); // Display ticks every 2 days
+        } else {
+            tickInterval = d3.timeDay.every(1); // For very short ranges, display ticks every day
+        }
+
+        // Update the x-axis
+        svgC.select(".x-axis") // Ensure you're selecting the axis group by class or ID
+            .attr("class", "x-axis")
+            .attr("transform", `translate(0,${heightC})`)
+            .style("font-size", "14px")
             .transition()
-            .duration(10)
-            .attr("x1", d => xCScale(d))
-            .attr("x2", d => xCScale(d));
+            .duration(0)
+            .call(d3.axisBottom(xCScale)
+                .tickValues(xCScale.ticks(tickInterval)) // Display ticks every 2 months
+                .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year;
+            .call(g => g.select(".domain").remove()) // Remove the x-axis line
+            .selectAll(".tick line") // Select all tick lines
+                .style("stroke-opacity", 0)
+                
+
+
+        // Update the vertical gridlines
+        svgC.selectAll(".x-grid")
+            .data(xCScale.ticks())
+            .join(
+                enter => enter.append("line")
+                    .attr("class", "x-grid")
+                    .attr("y1", 0)
+                    .attr("y2", heightC)
+                    .attr("stroke", "#e0e0e0")
+                    .attr("stroke-width", .5)
+                    .attr("stroke-opacity", .33),
+                update => update
+                    .transition()
+                    .duration(0)
+                    .attr("x1", d => xCScale(d))
+                    .attr("x2", d => xCScale(d)),
+                exit => exit.remove()
+            );
+
+        svgC.selectAll(".tick text")
+            .style("fill", "#777");
 
         // Update the lines with the new x scale
         svgC.selectAll(".line")
