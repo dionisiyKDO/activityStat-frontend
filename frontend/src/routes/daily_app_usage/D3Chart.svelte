@@ -60,9 +60,8 @@
     }
 
     function drawChart() {
-        // Delete old chart if it exists
         d3.select("#chart").selectAll("*").remove();
-        // #region
+
         const container = d3.select("#container");
         widthC  = container.node().getBoundingClientRect().width - marginC.left - marginC.right;
         heightC = 400 - marginC.top - marginC.bottom;
@@ -72,7 +71,6 @@
             .append("g")
             .attr("transform", `translate(${marginC.left},${marginC.top})`);
 
-        // Define the clipPath
         svgC.append("defs")
             .append("clipPath")
             .attr("id", "clip")
@@ -97,10 +95,10 @@
             .attr("transform", `translate(0,${heightC})`)
             .style("font-size", "14px")
             .call(d3.axisBottom(xCScale)
-                .tickValues(xCScale.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
-                .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
-            .call(g => g.select(".domain").remove()) // Remove the x-axis line
-            .selectAll(".tick line") // Select all tick lines
+                .tickValues(xCScale.ticks(d3.timeMonth.every(2)))
+                .tickFormat(d3.timeFormat("%b %Y")))
+            .call(g => g.select(".domain").remove())
+            .selectAll(".tick line")
                 .style("stroke-opacity", 0);
 
         yCAxis = svgC.append("g")
@@ -108,13 +106,12 @@
             .style("font-size", "14px")
             .call(d3.axisLeft(yCScale))
             .call(g => g.select(".domain").remove())
-            .selectAll(".tick line") // Select all tick lines
-                .style("stroke-opacity", 0); // Remove the y-axis line
+            .selectAll(".tick line")
+                .style("stroke-opacity", 0);
         
         svgC.selectAll(".tick text")
             .style("fill", "#777");
 
-        // Add vertical gridlines
         const xCGrid = svgC.selectAll("xGrid")
             .data(xCScale.ticks().slice(1, -1))
             .join(
@@ -134,8 +131,7 @@
                     .attr("x2", d => xCScale(d)),
                 exit => exit.remove()
             );
-            
-        // Add horizontal gridlines
+
         const yCGrid = svgC.selectAll("yGrid")
             .data(yCScale.ticks())
             .join("line")
@@ -146,8 +142,7 @@
             .attr("stroke", "#e0e0e0")
             .attr("stroke-width", .5)
             .attr("stroke-opacity", .33);
-        
-        // Add Y-axis label
+
         svgC.append("text")
             .attr("transform", "rotate(-90)")
             .attr("y", 0 - marginC.left)
@@ -159,7 +154,6 @@
             .style("font-family", "sans-serif")
             .text("Duration");
 
-        // Add border around the chart area
         svgC.append("rect")
             .attr("x", 0)
             .attr("y", 0)
@@ -168,13 +162,10 @@
             .attr("stroke", "#777")
             .attr("fill", "none");
 
-        // #endregion
-
-        // Add the line path
         svgC.selectAll(".line")
-            .data(sumstat, d => d[0]) // Use the app name or unique identifier as the key
+            .data(sumstat, d => d[0])
             .join(
-                enter => enter.append("path") // Handle entering elements
+                enter => enter.append("path")
                     .attr("class", "line")
                     .attr("fill", "none")
                     .attr("stroke", d => color(d[0]))
@@ -184,17 +175,15 @@
                         .x(d => xCScale(new Date(d.timestamp)))
                         .y(d => yCScale(+d.duration))
                         (d[1])),
-                update => update.transition() // Handle updating elements
-                    .duration(animDuration) // Transition duration in ms
+                update => update.transition()
+                    .duration(animDuration)
                     .attr("clip-path", "url(#clip)")
                     .attr("d", d => d3.line()
                         .x(d => xCScale(new Date(d.timestamp)))
                         .y(d => yCScale(+d.duration))
                         (d[1])),
-                exit => exit.remove() // Handle exiting elements
+                exit => exit.remove()
             );
-        
-        // #region
 
         const tooltipLine = svgC.append('line');
         const tooltip = d3.select('#tooltip').style('opacity', 0)
@@ -215,16 +204,15 @@
             .on('mousemove', drawTooltip)
             .on('mouseout', removeTooltip);
 
-        // Function to draw the tooltip
-        // TODO : Draw circle on the closest data point when the mouse hovers over the line
         function drawTooltip(event) {
-            const [mouseXsvg, mouseYsvg] = d3.pointer(event); // Get mouse position
+            const [mouseXsvg, mouseYsvg] = d3.pointer(event);
             const mouseX = event.clientX;
             const mouseY = event.clientY;
-            const xDate = xCScale.invert(mouseXsvg); // Find the x position in date
+            const xDate = xCScale.invert(mouseXsvg);
             const sumstatArray = Array.from(sumstat);
 
             // Get the closest data points to the mouse x position for each line
+            // TODO : Draw circle on the closest data point when the mouse hovers over the line
             const points = sumstatArray.map(([key, values]) => {
                 const closestPoint = d3.least(values, d => Math.abs(xCScale(d.date) - mouseXsvg));
                 return {
@@ -233,29 +221,24 @@
                     duration: closestPoint.duration,
                     x: xCScale(closestPoint.date),
                     y: yCScale(closestPoint.duration),
-                    color: color(key) // Get the color for the line corresponding to the app
+                    color: color(key)
                 };
             });
 
             const tooltipWidth = tooltip.node().offsetWidth;
             const tooltipHeight = tooltip.node().offsetHeight;
-
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
             
-            // Calculate tooltip position
             let tooltipLeft = mouseX + 20;
             let tooltipTop = mouseY - 40;
 
             // Adjust the position if the tooltip goes beyond the viewport
-            if (tooltipLeft + tooltipWidth > viewportWidth) { 
+            if (tooltipLeft + tooltipWidth > window.innerWidth) { 
                 tooltipLeft = mouseX - tooltipWidth - 10; 
             }
-            if (tooltipTop + tooltipHeight > viewportHeight) {
+            if (tooltipTop + tooltipHeight > window.innerHeight) {
                 tooltipTop = mouseY - tooltipHeight - 10;
             }
 
-            
             tooltip
                 .style("left", `${tooltipLeft}px`)
                 .style("top", `${tooltipTop}px`)
@@ -265,17 +248,14 @@
                 <div>
                     <strong>Date: </strong> ${d3.timeFormat("%b %d, %Y")(points[0].date)}<br><hr>
                 </div>`;
-            
             tooltipContent = tooltipContent + points.map(point => 
                 `<div>
                     <strong style="color:${point.color}"> ${point.app} </strong> <br>
                     Duration: ${point.duration === Math.max(...points.map(point => point.duration)) ? `<strong style="font-weight: 600; color: white">${point.duration} Hours</strong>` : `${point.duration} Hours`}
                 </div>`
             ).join('<br>');
-
             tooltip.html(tooltipContent);
 
-            // Update tooltip line position
             tooltipLine
                 .attr("x1", mouseXsvg)
                 .attr("x2", mouseXsvg)
@@ -288,56 +268,47 @@
 
         function removeTooltip() {
             tooltip.style("opacity", 0);
-            tooltipLine.attr("stroke-width", 0); // Hide the tooltip line
+            tooltipLine.attr("stroke-width", 0);
         }
-        // #endregion
     }
         
     function updateChart() {
         const newDomain = [new Date(start_date_input), new Date(end_date_input)];
-
-        // Update the x scale domain
         xCScale.domain(newDomain);
 
         const dateRangeInDays = d3.timeDay.count(xCScale.domain()[0], xCScale.domain()[1]);
-        
-        // Set the tick interval based on the date range in days
         let tickInterval;
-        if (dateRangeInDays > 365 * 5) { // If the range is greater than 5 years
-            tickInterval = d3.timeYear.every(1); // Display ticks every year
-        } else if (dateRangeInDays > 365 * 2) { // If the range is between 2 and 5 years
-            tickInterval = d3.timeMonth.every(6); // Display ticks every 6 months
-        } else if (dateRangeInDays > 365) { // If the range is between 1 and 2 years
-            tickInterval = d3.timeMonth.every(2); // Display ticks every 3 months
-        } else if (dateRangeInDays > 180) { // If the range is between 6 months and 1 year
-            tickInterval = d3.timeMonth.every(1); // Display ticks every month
-        } else if (dateRangeInDays > 90) { // If the range is between 3 and 6 months
-            tickInterval = d3.timeWeek.every(2); // Display ticks every 2 weeks
-        } else if (dateRangeInDays > 30) { // If the range is between 1 and 3 months
-            tickInterval = d3.timeWeek.every(1); // Display ticks every week
-        } else if (dateRangeInDays > 10) { // If the range is between 10 days and 1 month
-            tickInterval = d3.timeDay.every(2); // Display ticks every 2 days
+        if (dateRangeInDays > 365 * 5) {
+            tickInterval = d3.timeYear.every(1);
+        } else if (dateRangeInDays > 365 * 2) { 
+            tickInterval = d3.timeMonth.every(6); 
+        } else if (dateRangeInDays > 365) { 
+            tickInterval = d3.timeMonth.every(2); 
+        } else if (dateRangeInDays > 180) {
+            tickInterval = d3.timeMonth.every(1);
+        } else if (dateRangeInDays > 90) { 
+            tickInterval = d3.timeWeek.every(2); 
+        } else if (dateRangeInDays > 30) {
+            tickInterval = d3.timeWeek.every(1);
+        } else if (dateRangeInDays > 10) {
+            tickInterval = d3.timeDay.every(2); 
         } else {
-            tickInterval = d3.timeDay.every(1); // For very short ranges, display ticks every day
+            tickInterval = d3.timeDay.every(1);
         }
 
-        // Update the x-axis
-        svgC.select(".x-axis") // Ensure you're selecting the axis group by class or ID
+        svgC.select(".x-axis")
             .attr("class", "x-axis")
             .attr("transform", `translate(0,${heightC})`)
             .style("font-size", "14px")
             .transition()
             .duration(animDuration)
             .call(d3.axisBottom(xCScale)
-                .tickValues(xCScale.ticks(tickInterval)) // Display ticks every 2 months
-                .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year;
-            .call(g => g.select(".domain").remove()) // Remove the x-axis line
-            .selectAll(".tick line") // Select all tick lines
+                .tickValues(xCScale.ticks(tickInterval))
+                .tickFormat(d3.timeFormat("%b %Y")))
+            .call(g => g.select(".domain").remove())
+            .selectAll(".tick line")
                 .style("stroke-opacity", 0)
-                
 
-
-        // Update the vertical gridlines
         svgC.selectAll(".x-grid")
             .data(xCScale.ticks())
             .join(
@@ -359,11 +330,10 @@
         svgC.selectAll(".tick text")
             .style("fill", "#777");
 
-        // Update the lines with the new x scale
         svgC.selectAll(".line")
-            .data(sumstat) // Use the app name or unique identifier as the key
+            .data(sumstat)
             .join(
-                enter => enter.append("path") // Handle entering elements
+                enter => enter.append("path")
                     .attr("class", "line")
                     .attr("fill", "none")
                     .attr("stroke", d => color(d[0]))
@@ -373,22 +343,19 @@
                         .x(d => xCScale(new Date(d.timestamp)))
                         .y(d => yCScale(+d.duration))
                         (d[1])),
-                update => update.transition() // Handle updating elements
-                    .duration(animDuration) // Transition duration in ms
+                update => update.transition()
+                    .duration(animDuration)
                     .attr("clip-path", "url(#clip)")
                     .attr("d", d => d3.line()
                         .x(d => xCScale(new Date(d.timestamp)))
                         .y(d => yCScale(+d.duration))
                         (d[1])),
-                exit => exit.remove() // Handle exiting elements
+                exit => exit.remove()
             );
     }
 
 
     function drawBrush() {
-        // TODO : double click to reset start and end date
-        
-        // Delete old chart if it exists
         d3.select("#brush").selectAll("*").remove();
 
         const container = d3.select("#container");
@@ -408,16 +375,15 @@
             .attr("transform", `translate(0,${heightB})`)
             .style("font-size", "14px")
             .call(d3.axisBottom(xBScale)
-                .tickValues(xBScale.ticks(d3.timeMonth.every(2))) // Display ticks every 2 months
-                .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
-            .call(g => g.select(".domain").remove()) // Remove the x-axis line
-            .selectAll(".tick line") // Select all tick lines
+                .tickValues(xBScale.ticks(d3.timeMonth.every(2)))
+                .tickFormat(d3.timeFormat("%b %Y")))
+            .call(g => g.select(".domain").remove())
+            .selectAll(".tick line")
                 .style("stroke-opacity", 0);
 
         svgB.selectAll(".tick text")
             .style("fill", "#777");
 
-        // Add vertical gridlines
         const xBGrid = svgB.selectAll("xGrid")
             .data(xBScale.ticks())
             .attr("class", "x-grid")
@@ -430,7 +396,6 @@
             .attr("stroke-width", .5)
             .attr("stroke-opacity", .33);
 
-        // Add border around the chart area
         svgB.append("rect")
             .attr("x", 0)
             .attr("y", 0)
@@ -439,17 +404,14 @@
             .attr("stroke", "#777")
             .attr("fill", "none");
 
-        // Create the brush
         const brush = d3.brushX()
             .extent([[0, 0], [widthB, heightB]])
             .on("brush end", brushed);
 
-        // Add the brush to the SVG
         svgB.append('g')
             .attr('class', 'brush')
             .call(brush);
 
-        // Brush event handler
         function brushed({ selection }) {
             if (selection) {
                 const [x0, x1] = selection.map(xBScale.invert);                    
@@ -460,6 +422,7 @@
         }
     }
 </script>
+
 
 <div id="container">
     <div class="app"><input id="app" type="text" bind:value={app} onfocusout={getData} /></div>
