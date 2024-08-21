@@ -25,7 +25,7 @@
     let startDateNumeric = $state(startDate.getTime());
     let endDateNumeric   = $state(endDate.getTime());
 
-    let svgC, sumstat, color, xCScale, xCAxis, yCScale, yCAxis, widthC, heightC, marginC = $state();
+    let svgC, sumstat, color, xCScale, xCAxis, yCScale, yCAxis, widthC, heightC, marginC, circles = $state();
     let svgB, xBScale, xBAxis, widthB, heightB, marginB = $state();
     
     marginC = { top: 10, right: 30, bottom: 30, left: 60 };
@@ -264,11 +264,34 @@
                 .attr("stroke", "#aaa")
                 .attr("stroke-width", 1)
                 .attr("stroke-opacity", .66);
+            
+            circles = svgC.selectAll(".tooltip-circle")
+                .data(points, d => d.app);
+
+            // Remove any existing circles that are no longer needed
+            circles.exit().remove();
+
+            // Update existing circles
+            circles
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", 4)
+                .attr("fill", d => d.color);
+
+            // Add new circles
+            circles.enter()
+                .append("circle")
+                .attr("class", "tooltip-circle")
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", 4)
+                .attr("fill", d => d.color);
             }
 
         function removeTooltip() {
             tooltip.style("opacity", 0);
             tooltipLine.attr("stroke-width", 0);
+            svgC.selectAll(".tooltip-circle").remove();
         }
     }
         
@@ -417,6 +440,7 @@
                 const [x0, x1] = selection.map(xBScale.invert);                    
                 start_date_input = new Date(x0).toISOString().split('T')[0];
                 end_date_input = new Date(x1).toISOString().split('T')[0];
+                svgC.selectAll(".tooltip-circle").remove();
                 updateChart();
             }
         }
