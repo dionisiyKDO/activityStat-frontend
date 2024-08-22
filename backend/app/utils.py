@@ -138,6 +138,11 @@ def __is_cache_valid(file_path):
         print(f"Error checking cache validity: {e}")
         return False
 
+def get_app_list():
+    with open('./data/app_title_map.json', 'r') as json_file:
+        app_title_map = json.load(json_file)
+    return app_title_map
+
 def get_spent_time():
     # TODO: different result with different hyperparameters, take this into account when saving cache
     file_path = 'spent_time.json'

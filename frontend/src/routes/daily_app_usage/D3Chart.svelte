@@ -17,6 +17,8 @@
     let end_date_input   = $state('2050-01-01');
     let notice = $state('(2024-06-13 -- 2024-06-19 doesnt exist)');
     
+    let app_names = $state([]);
+
     let startDate = $derived(new Date(start_date_input));
     let endDate   = $derived(new Date(end_date_input));
 
@@ -33,10 +35,18 @@
 
     let animDuration = 0;
 
-    // TODO : make input (selector) for avaible apps to include/exclude from the chart
+
+    async function fetchAppList() {
+        const response = await fetch("/api/app_list/");
+        // console.log(response);
+        const appList = await response.json();
+        app_names = appList;
+        return appList;
+    }
 
     async function fetchData() {
         const response = await fetch("/api/daily_app_usage/" + app);
+        // console.log(response);
         const roundedData = JSON.parse(await response.json(), (key, value) => 
             typeof value === "number" ? Math.round(value * 100) / 100 : value
         ); // round numbers to 2 decimals
@@ -45,6 +55,9 @@
     }
 
     onMount(() => {
+        fetchAppList().then(r => {
+            console.log(r);
+        });
         getData()
     });
 
@@ -212,7 +225,6 @@
             const sumstatArray = Array.from(sumstat);
 
             // Get the closest data points to the mouse x position for each line
-            // TODO : Draw circle on the closest data point when the mouse hovers over the line
             const points = sumstatArray.map(([key, values]) => {
                 const closestPoint = d3.least(values, d => Math.abs(xCScale(d.date) - mouseXsvg));
                 return {
@@ -447,7 +459,6 @@
     }
 </script>
 
-
 <div id="container">
     <div class="app"><input id="app" type="text" bind:value={app} onfocusout={getData} /></div>
     <div class="date-container">
@@ -484,7 +495,6 @@
         font-size: 1.2em;
         padding: 20px;
     }
-
     #notice {
         text-align: center;
         font-size: 0.8em;
