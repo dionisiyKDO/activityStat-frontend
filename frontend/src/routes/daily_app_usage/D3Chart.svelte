@@ -391,7 +391,6 @@
             );
     }
 
-    let isModalVisible = $state(false);
     function drawBrush() {
         d3.select("#brush").selectAll("*").remove();
 
@@ -460,11 +459,11 @@
         }
     }
 
+    let isModalVisible = $state(false);
     function showModal() {
         isModalVisible = true;
     };
 
-    // Function to hide the modal
     function hideModal() {
         if (event.target === event.currentTarget) {
             isModalVisible = false;
@@ -529,8 +528,6 @@
         margin-bottom: 20px;
     }
 
-    /* Style for the input field */
-
     .app div {
         display: flex;
         align-items: center;
@@ -553,16 +550,6 @@
         box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
     }
 
-
-    /* .app input {
-        width: 60%;
-        margin: 10px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 1.2em;
-        background-color: #222222;
-    } */
     .date-container {
         display: flex;
         justify-content: space-around;
@@ -579,8 +566,6 @@
     }
 
 
-
-    /* Help icon style */
     #help-icon {
         cursor: pointer;
         margin-left: 10px;
@@ -593,27 +578,25 @@
         color: #535bf2;
     }
 
-    /* Modal styles */
     .modal {
-        display: none; /* Hidden by default */
-        position: fixed; /* Stay in place */
-        z-index: 1000; /* Sit on top */
+        display: none;
+        position: fixed;
+        z-index: 1000;
         left: 0;
         top: 0;
-        width: 100%; /* Full width */
-        height: 100%; /* Full height */
-        background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
-        overflow: auto; /* Enable scroll if needed */
-        padding-top: 60px; /* Padding for better top alignment */
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        overflow: auto;
+        padding-top: 60px;
     }
 
-    /* Modal content box */
     .modal-content {
         background-color: #222222;
-        margin: 2.5% auto 10%; /* 5% from the top and centered */
+        margin: 2.5% auto 10%;
         padding: 20px;
         border: 1px solid #888;
-        width: 60%; /* Reduced width for better focus */
+        width: 60%;
         border-radius: 5px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
@@ -626,7 +609,6 @@
         text-align: center;
     }
 
-    /* Close button style */
     .close {
         color: #aaa;
         float: right;
@@ -642,7 +624,6 @@
         cursor: pointer;
     }
 
-    /* Table styles */
     .modal-table {
         width: 100%;
         border-collapse: collapse;
@@ -666,7 +647,6 @@
         background-color: #303030;
     }
 
-    /* Class to show the modal */
     .visible {
         display: block;
     }
