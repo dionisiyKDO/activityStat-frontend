@@ -13,6 +13,7 @@ data_path = os.path.join('data', 'aw-buckets-export.json')
 cache_path = os.path.join('data', 'cache')
 
 def create_app_title_mapping() -> dict:
+    # TODO: auto-generate this from the data
     app_title_map = {
         "chrome.exe": "Google Chrome",
         "Discord.exe": "Discord",
@@ -56,9 +57,11 @@ def create_app_title_mapping() -> dict:
         "Heretics Fork.exe": "Heretic's Fork"
     }
 
+    app_title_list = [{"app": app, "title": title} for app, title in app_title_map.items()]
+    
     # Write the mapping to a JSON file
     with open('./backend/app/data/app_title_map.json', 'w') as json_file:
-        json.dump(app_title_map, json_file)
+        json.dump(app_title_list, json_file, indent=4)
 
 
 def __get_df(path=data_path) -> pd.DataFrame:
@@ -141,6 +144,7 @@ def __is_cache_valid(file_path):
 def get_app_list():
     with open('./data/app_title_map.json', 'r') as json_file:
         app_title_map = json.load(json_file)
+        print(app_title_map)
     return app_title_map
 
 def get_spent_time():

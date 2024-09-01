@@ -1,1 +1,162 @@
-{"chrome.exe": "Google Chrome", "Discord.exe": "Discord", "StarRail.exe": "Honkai: Star Rail", "GenshinImpact.exe": "Genshin Impact", "League of Legends.exe": "League of Legends", "Telegram.exe": "Telegram", "dnplayer.exe": "LDPlayer", "Spotify.exe": "Spotify", "Code.exe": "Visual Studio Code", "explorer.exe": "File Explorer", "bg3_dx11.exe": "Baldur's Gate 3", "WINWORD.EXE": "Microsoft Word", "Obsidian.exe": "Obsidian", "reverse1999.exe": "Reverse 1999", "FortniteClient-Win64-Shipping.exe": "Fortnite", "Client-Win64-Shipping.exe": "Wuthering Waves", "nikke.exe": "Goddess of Victory: Nikke", "ZenlessZoneZero.exe": "Zenless Zone Zero", "LeagueClientUx.exe": "League Client", "Overwatch.exe": "Overwatch", "Risk of Rain 2.exe": "Risk of Rain 2", "steamwebhelper.exe": "Steam Web Helper", "Gunfire Reborn.exe": "Gunfire Reborn", "Hades2.exe": "Hades 2", "msedge.exe": "Microsoft Edge", "ShellExperienceHost.exe": "Windows Shell Experience", "vlc.exe": "VLC Media Player", "r5apex.exe": "Apex Legends", "VALORANT-Win64-Shipping.exe": "Valorant", "EXCEL.EXE": "Microsoft Excel", "DevilMayCry5.exe": "Devil May Cry 5", "Risk of Rain Returns.exe": "Risk of Rain Returns", "dotnet.exe": ".NET Core", "AniLibrix.exe": "AniLibrix", "sai2.exe": "PaintTool SAI 2", "acad.exe": "AutoCAD", "Zoom.exe": "Zoom", "OuterWilds.exe": "Outer Wilds", "ui32.exe": "Wallpaper Engine", "Heretics Fork.exe": "Heretic's Fork"}
+[
+    {
+        "app": "chrome.exe",
+        "title": "Google Chrome"
+    },
+    {
+        "app": "Discord.exe",
+        "title": "Discord"
+    },
+    {
+        "app": "StarRail.exe",
+        "title": "Honkai: Star Rail"
+    },
+    {
+        "app": "GenshinImpact.exe",
+        "title": "Genshin Impact"
+    },
+    {
+        "app": "League of Legends.exe",
+        "title": "League of Legends"
+    },
+    {
+        "app": "Telegram.exe",
+        "title": "Telegram"
+    },
+    {
+        "app": "dnplayer.exe",
+        "title": "LDPlayer"
+    },
+    {
+        "app": "Spotify.exe",
+        "title": "Spotify"
+    },
+    {
+        "app": "Code.exe",
+        "title": "Visual Studio Code"
+    },
+    {
+        "app": "explorer.exe",
+        "title": "File Explorer"
+    },
+    {
+        "app": "bg3_dx11.exe",
+        "title": "Baldur's Gate 3"
+    },
+    {
+        "app": "WINWORD.EXE",
+        "title": "Microsoft Word"
+    },
+    {
+        "app": "Obsidian.exe",
+        "title": "Obsidian"
+    },
+    {
+        "app": "reverse1999.exe",
+        "title": "Reverse 1999"
+    },
+    {
+        "app": "FortniteClient-Win64-Shipping.exe",
+        "title": "Fortnite"
+    },
+    {
+        "app": "Client-Win64-Shipping.exe",
+        "title": "Wuthering Waves"
+    },
+    {
+        "app": "nikke.exe",
+        "title": "Goddess of Victory: Nikke"
+    },
+    {
+        "app": "ZenlessZoneZero.exe",
+        "title": "Zenless Zone Zero"
+    },
+    {
+        "app": "LeagueClientUx.exe",
+        "title": "League Client"
+    },
+    {
+        "app": "Overwatch.exe",
+        "title": "Overwatch"
+    },
+    {
+        "app": "Risk of Rain 2.exe",
+        "title": "Risk of Rain 2"
+    },
+    {
+        "app": "steamwebhelper.exe",
+        "title": "Steam Web Helper"
+    },
+    {
+        "app": "Gunfire Reborn.exe",
+        "title": "Gunfire Reborn"
+    },
+    {
+        "app": "Hades2.exe",
+        "title": "Hades 2"
+    },
+    {
+        "app": "msedge.exe",
+        "title": "Microsoft Edge"
+    },
+    {
+        "app": "ShellExperienceHost.exe",
+        "title": "Windows Shell Experience"
+    },
+    {
+        "app": "vlc.exe",
+        "title": "VLC Media Player"
+    },
+    {
+        "app": "r5apex.exe",
+        "title": "Apex Legends"
+    },
+    {
+        "app": "VALORANT-Win64-Shipping.exe",
+        "title": "Valorant"
+    },
+    {
+        "app": "EXCEL.EXE",
+        "title": "Microsoft Excel"
+    },
+    {
+        "app": "DevilMayCry5.exe",
+        "title": "Devil May Cry 5"
+    },
+    {
+        "app": "Risk of Rain Returns.exe",
+        "title": "Risk of Rain Returns"
+    },
+    {
+        "app": "dotnet.exe",
+        "title": ".NET Core"
+    },
+    {
+        "app": "AniLibrix.exe",
+        "title": "AniLibrix"
+    },
+    {
+        "app": "sai2.exe",
+        "title": "PaintTool SAI 2"
+    },
+    {
+        "app": "acad.exe",
+        "title": "AutoCAD"
+    },
+    {
+        "app": "Zoom.exe",
+        "title": "Zoom"
+    },
+    {
+        "app": "OuterWilds.exe",
+        "title": "Outer Wilds"
+    },
+    {
+        "app": "ui32.exe",
+        "title": "Wallpaper Engine"
+    },
+    {
+        "app": "Heretics Fork.exe",
+        "title": "Heretic's Fork"
+    }
+]

@@ -37,17 +37,21 @@
 
 
     async function fetchAppList() {
-        const response = await fetch("/api/app_list/");
-        // console.log(response);
-        const appList = await response.json();
-        app_names = appList;
-        return appList;
+        try {
+            const response = await fetch("/api/app_list/");
+            const json = await response.json();
+            app_names = json;
+            console.log('app_names', app_names);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
     }
-
+    
     async function fetchData() {
         const response = await fetch("/api/daily_app_usage/" + app);
-        // console.log(response);
-        const roundedData = JSON.parse(await response.json(), (key, value) => 
+        const json = await response.json();
+        console.log('data', json);
+        const roundedData = JSON.parse(json, (key, value) => 
             typeof value === "number" ? Math.round(value * 100) / 100 : value
         ); // round numbers to 2 decimals
         data = roundedData;
@@ -55,10 +59,8 @@
     }
 
     onMount(() => {
-        fetchAppList().then(r => {
-            console.log(r);
-        });
-        getData()
+        fetchAppList();
+        getData();
     });
 
     function getData(event) {
@@ -389,7 +391,7 @@
             );
     }
 
-
+    let isModalVisible = $state(false);
     function drawBrush() {
         d3.select("#brush").selectAll("*").remove();
 
@@ -457,10 +459,24 @@
             }
         }
     }
+
+    function showModal() {
+        isModalVisible = true;
+    };
+
+    // Function to hide the modal
+    function hideModal() {
+        isModalVisible = false;
+    };
 </script>
 
 <div id="container">
-    <div class="app"><input id="app" type="text" bind:value={app} onfocusout={getData} /></div>
+    <div class="app">
+        <div>
+            <input id="app" type="text" bind:value={app} onfocusout={getData} />
+            <span id="help-icon" onclick={showModal}>?</span>
+        </div>
+    </div>
     <div class="date-container">
         <span>Start Date: {start_date_input}</span>
         <span>End Date: {end_date_input}</span>
@@ -470,16 +486,64 @@
     <div id="notice">{notice}</div>
     <svg id="chart"></svg>
     <div id="tooltip"></div>
+
+    <!-- Modal Structure -->
+    <div id="modal" class="modal" class:visible={isModalVisible}>
+        <div class="modal-content">
+            <span class="close" onclick={hideModal}>&times;</span>
+            <h2>Available App Inputs</h2>
+            {#if app_names.length > 0}
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>App Title</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each app_names as item}
+                            <tr>
+                                <td>{item.app}</td>
+                                <td>{item.title}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            {:else}
+                <p>Loading...</p>
+            {/if}
+        </div>
+    </div>
 </div>
 
 
 <style>
     .app {
         display: flex;
-        justify-content: center;
         align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 20px;
     }
+
+    /* Style for the input field */
     .app input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+    .app input:focus {
+        border-color: #535bf2;
+        box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+    }
+
+
+    /* .app input {
         width: 60%;
         margin: 10px;
         padding: 10px;
@@ -487,7 +551,7 @@
         border-radius: 4px;
         font-size: 1.2em;
         background-color: #222222;
-    }
+    } */
     .date-container {
         display: flex;
         justify-content: space-around;
@@ -501,5 +565,98 @@
         color: #777;
         margin-top: 10px;
         margin-bottom: -4px;
+    }
+
+
+
+    /* Help icon style */
+    #help-icon {
+        cursor: pointer;
+        margin-left: 10px;
+        font-weight: bold;
+        color: #646cff;
+        font-size: 1.4em;
+    }
+
+    #help-icon:hover {
+        color: #535bf2;
+    }
+
+    /* Modal styles */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1000; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
+        overflow: auto; /* Enable scroll if needed */
+        padding-top: 60px; /* Padding for better top alignment */
+    }
+
+    /* Modal content box */
+    .modal-content {
+        background-color: #222222;
+        margin: 2.5% auto 10%; /* 5% from the top and centered */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 60%; /* Reduced width for better focus */
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-content h2 {
+        margin-top: 0;
+        color: #fff;
+        font-size: 1.4em;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    /* Close button style */
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #7e7e7e;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Table styles */
+    .modal-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+
+    .modal-table th,
+    .modal-table td {
+        text-align: left;
+        padding: 5px 7px;
+        border: 1px solid #868686;
+    }
+
+    .modal-table th {
+        background-color: #4e4e4e;
+        font-weight: bold;
+    }
+
+    .modal-table tr:nth-child(even) {
+        background-color: #303030;
+    }
+
+    /* Class to show the modal */
+    .visible {
+        display: block;
     }
 </style>
