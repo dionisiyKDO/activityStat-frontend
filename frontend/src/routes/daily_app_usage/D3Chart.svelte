@@ -466,7 +466,9 @@
 
     // Function to hide the modal
     function hideModal() {
-        isModalVisible = false;
+        if (event.target === event.currentTarget) {
+            isModalVisible = false;
+        }
     };
 </script>
 
@@ -488,7 +490,9 @@
     <div id="tooltip"></div>
 
     <!-- Modal Structure -->
-    <div id="modal" class="modal" class:visible={isModalVisible}>
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div id="modal" class="modal" class:visible={isModalVisible} onclick={hideModal}>
         <div class="modal-content">
             <span class="close" onclick={hideModal}>&times;</span>
             <h2>Available App Inputs</h2>
@@ -520,14 +524,21 @@
 <style>
     .app {
         display: flex;
-        align-items: center;
         justify-content: center;
         gap: 8px;
         margin-bottom: 20px;
     }
 
     /* Style for the input field */
+
+    .app div {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60%;
+    }
     .app input {
+        width: 90%;
         flex: 1;
         padding: 10px;
         border: 1px solid #ccc;
