@@ -1,18 +1,22 @@
-<script>
+<script lang="ts">
 	import Header from '$lib/Header.svelte';
 	import Footer from '$lib/Footer.svelte';
 	import '../app.css';
+	
+	let { children } = $props();
 </script>
 
 <div class="app">
 	<Header />
 
 	<main>
-		<slot />
+		{@render children()}
 	</main>
 
 	<Footer />
 </div>
+
+
 
 <style>
 	.app {
