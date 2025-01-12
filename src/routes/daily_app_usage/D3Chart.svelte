@@ -270,6 +270,9 @@
             ).join('<br>');
             tooltip.html(tooltipContent);
 
+            // If there are multiple points, use the color of the closest point
+            const tooltipLineStroke = closestPoint.count > 0 ? '#646cff' : '#e0e0e0';
+
             tooltipLine
                 .attr("x1", mouseXsvg)
                 .attr("x2", mouseXsvg)
