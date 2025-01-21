@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     // @ts-nocheck
     import * as d3 from "d3";
     import { onMount } from "svelte";
@@ -14,6 +14,8 @@
         const height = 400;
         const margin = { top: 10, right: 60, bottom: 100, left: 60 };
 
+        const filter_threshold = 50;
+
         const svg = d3
             .select("#spent-time-chart")                             // select the SVG element
                 .attr("viewBox", `0 0 ${width} ${height}`)           // set scalable height and width
@@ -22,9 +24,10 @@
         
         // Create a scale for the x-axis (applications)
         const xScale = d3.scaleBand()
-            .domain(data.map(d => d.title))                          // select data
-            .range([margin.left, width - margin.right])              // set range
-            .padding(0.05);                                          // add padding
+            .domain(data.filter(d => d.duration > filter_threshold)
+                .map(d => d.title))                                      // select titles to be present
+            .range([margin.left, width - margin.right])                // set range
+            .padding(0.05);                                            // add padding
 
         // Create a scale for the y-axis (duration)
         const yScale = d3.scaleLinear()
@@ -49,11 +52,11 @@
             .call(yAxis);                                       // y-axis                    
 
         // Create the bars
-        svg.selectAll(".bar")                           // select all (future) bars
-            .data(data)                                 // bind data ('create' bars for each entrie in data)
-            .enter().append("rect")                     // append a 'rect' for each entrie and for each rect:
+        svg.selectAll(".bar")                                       // select all (future) bars
+            .data(data.filter(d => d.duration > filter_threshold))  // bind data ('create' bars for each entrie in data)
+            .enter().append("rect")                                 // append a 'rect' for each entrie and for each rect:
                 .attr("class", "bar")                                   // add class 'bar'
-                .attr("x", d => xScale(d.title))                        // set x position
+                .attr("x", d => xScale(d.title))                          // set x position
                 .attr("y", d => yScale(d.duration))                     // set y position
                 .attr("width", xScale.bandwidth())                      // set width
                 .attr("height", d => yScale(0) - yScale(d.duration))    // set height
@@ -109,6 +112,6 @@
 
 <style>
     svg {
-        font: 10px sans-serif;
+        font-size: 32px;
     }
 </style>
