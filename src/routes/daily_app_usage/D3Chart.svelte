@@ -572,12 +572,24 @@
 			// #endregion
 
 			svg_brush.on('dblclick', () => {
+				// Reset the xScale_brush domain to the full extent of the data
 				xScale_brush.domain(d3.extent(data, (d: any) => d.date));
+
+				// Update the x-axis to reflect the reset domain
 				xAxis_brush.call(
 					d3
 						.axisBottom(xScale_brush)
 						.tickValues(xScale_brush.ticks(d3.timeMonth.every(2)))
 						.tickFormat(d3.timeFormat('%b %Y'))
+				);
+
+				// Clear any active brush selection
+				brushGroup.call(brush.move, null);
+
+				// Update the main chart with the full data extent
+				updateChart(
+					d3.extent(data, (d: any) => d.date)[0], // Start date
+					d3.extent(data, (d: any) => d.date)[1]  // End date
 				);
 			});
 		}
