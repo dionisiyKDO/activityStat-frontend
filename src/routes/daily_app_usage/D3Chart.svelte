@@ -60,10 +60,10 @@
 			.attr('height', height);
 
 		// Group data by 'app' (to separate lines per app).
-		let sumstat = d3.group(filteredData, (d: any) => d.app);
+		const sumstat = d3.group(filteredData, (d: any) => d.app);
 
 		// Color scale for different 'app' categories.
-		let color = d3
+		const color = d3
 			.scaleOrdinal()
 			.range([
 				'#e41a1c',
@@ -496,19 +496,66 @@
 				.attr('fill', 'none');
 
 			// Draw overall data line in brush chart
+			// svg_brush
+			// 	.append('path')
+			// 	.attr('class', 'brush-line')
+			// 	.attr('fill', 'none')
+			// 	.attr('stroke', '#377eb8') // Use a neutral color
+			// 	.attr('stroke-width', 1)
+			// 	.attr('d', 
+			// 		d3.line()
+			// 			.x((d: any) => xScale_brush(d.date))
+			// 			.y((d: any) => yScale_brush(d.duration))(data)
+			// 	);
+
+			// Group data by 'app' (to separate lines per app).
+			const sumstat = d3.group(filteredData, (d: any) => d.app);
+
+			// Color scale for different 'app' categories.
+			const color = d3
+				.scaleOrdinal()
+				.range([
+					'#e41a1c',
+					'#377eb8',
+					'#4daf4a',
+					'#984ea3',
+					'#ff7f00',
+					'#ffff33',
+					'#a65628',
+					'#f781bf',
+					'#999999'
+				]);
 			svg_brush
-				.append('path')
-				.attr('class', 'brush-line')
-				.attr('fill', 'none')
-				.attr('stroke', '#377eb8') // Use a neutral color
-				.attr('stroke-width', 1)
-				.attr('d', 
-					d3.line()
-						.x((d: any) => xScale_brush(d.date))
-						.y((d: any) => yScale_brush(d.duration))(data)
+				.selectAll('.line')
+				.data(sumstat)
+				.join(
+					(enter: any) =>
+						enter
+							.append('path')
+							.attr('class', 'line')
+							.attr('fill', 'none')
+							.attr('stroke', (d) => color(d[0]))
+							.attr('stroke-width', 1.5)
+							.attr('clip-path', 'url(#clip)')
+							.attr('d', (d) =>
+								d3
+									.line()
+									.x((d) => xScale_brush(new Date(d.timestamp)))
+									.y((d) => yScale_brush(+d.duration))(d[1])
+							),
+					(update: any) =>
+						update
+							.transition()
+							.duration(animDuration)
+							.attr('clip-path', 'url(#clip)')
+							.attr('d', (d) =>
+								d3
+									.line()
+									.x((d) => xScale_brush(new Date(d.timestamp)))
+									.y((d) => yScale_brush(+d.duration))(d[1])
+							),
+					(exit: any) => exit.remove()
 				);
-
-
 
 			const brush = d3
 				.brushX()
