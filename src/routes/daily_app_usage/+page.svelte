@@ -23,7 +23,7 @@
 
 
 <div class="flex flex-col mb-2">
-	<input id="app" type="text" bind:value={app} onfocusout={getData} />
+	<input class="p-1 rounded-lg text-xl" id="app" type="text" bind:value={app} onfocusout={getData} />
 </div>
 
 {#await appUsageDataReq}
