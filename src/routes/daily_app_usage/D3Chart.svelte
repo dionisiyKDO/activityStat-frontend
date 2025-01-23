@@ -8,6 +8,8 @@
 	let notice = "(2024-06-13 -- 2024-06-19 doesn't exist)";
 
 	// TODO: calculating start and end dates insted of using this hardcoded values
+	// d3.extent(data, (d: any) => d.date)[0], // Start date
+	// d3.extent(data, (d: any) => d.date)[1]  // End date
 	let start_date = $state('1999-01-01');
 	let end_date = $state('2050-01-01');
 	let animDuration = 10;
@@ -369,22 +371,6 @@
 				.selectAll('.tick line')
 				.style('stroke-opacity', 0);
 			
-			// let xAxis = svg
-			// 	.append('g')
-			// 	.attr('class', 'x-axis')
-			// 	.attr('transform', `translate(0,${height})`)
-			// 	.style('font-size', '14px')
-			// 	.call(
-			// 		d3
-			// 			.axisBottom(xScale)
-			// 			.ticks(10) // better?
-			// 			// .tickValues(xScale.ticks(d3.timeMonth.every(2))) // old way to manage ticks
-			// 			.tickFormat(d3.timeFormat('%b %Y'))
-			// 	)
-			// 	.call((g: any) => g.select('.domain').remove())
-			// 	.selectAll('.tick line')
-			// 		.style('stroke-opacity', 0);
-			
 
 			svg
 				.selectAll('.x-grid')
@@ -467,6 +453,12 @@
 				.range([0, width_brush])
 				.domain(d3.extent(data, (d: any) => d.date));
 
+			let yScale_brush = d3
+				.scaleLinear()
+				.range([height_brush, 0])
+				.domain([0, d3.max(data, (d) => d.duration)])
+				.nice();
+
 			let xAxis_brush = svg_brush
 				.append('g')
 				.attr('transform', `translate(0,${height_brush})`)
@@ -502,6 +494,21 @@
 				.attr('height', height_brush)
 				.attr('stroke', '#777')
 				.attr('fill', 'none');
+
+			// Draw overall data line in brush chart
+			svg_brush
+				.append('path')
+				.attr('class', 'brush-line')
+				.attr('fill', 'none')
+				.attr('stroke', '#377eb8') // Use a neutral color
+				.attr('stroke-width', 1)
+				.attr('d', 
+					d3.line()
+						.x((d: any) => xScale_brush(d.date))
+						.y((d: any) => yScale_brush(d.duration))(data)
+				);
+
+
 
 			const brush = d3
 				.brushX()
