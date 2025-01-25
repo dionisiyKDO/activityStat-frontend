@@ -2,37 +2,35 @@
 	// @ts-ignore
 	import * as d3 from 'd3';
 	import { onMount } from 'svelte';
+	import { type AppUsageData, type margin } from './load';
+
+
+    let { data }: { data: AppUsageData[] | null } = $props();
+    let datasets = $derived(groupByYear(data));
+
+    function groupByYear(data: AppUsageData[] | null) {
+        let result = data?.map((d: any) => ({
+            date: new Date(d.timestamp).toISOString().split('T')[0],
+            duration: d.duration
+        }))
+        
+        return result?.reduce((acc: any, item: any) => {
+            const year = new Date(item.date).getFullYear();
+            if (!acc[year]) {
+                acc[year] = [];
+            }
+            acc[year].push(item);
+            return acc;
+        }, {});
+    }
+
+    $inspect(datasets);
+
 
 	let svg: HTMLElement;
-	let data = []; // Default data (current year or range)
+	// let data = []; // Default data (current year or range)
 	let allData = {}; // Store data for multiple years
 	let currentYear = 2025; // Default year
-
-	// Generate datasets for multiple years
-	const generateYearData = (year: number) => {
-		const data = [];
-		const startDate = new Date(`${year}-01-01`);
-		const endDate = new Date(`${year}-12-31`);
-		let currentDate = startDate;
-
-		while (currentDate <= endDate) {
-			data.push({
-				date: currentDate.toISOString().split('T')[0], // Format YYYY-MM-DD
-				value: Math.floor(Math.random() * 10) // Random value between 0 and 9
-			});
-			currentDate.setDate(currentDate.getDate() + 1);
-		}
-
-		return data;
-	};
-
-	const datasets: any = $state({
-		2025: generateYearData(2025),
-		2024: generateYearData(2024),
-		2023: generateYearData(2023)
-	});
-
-	$inspect(datasets);
 
 	// Initial render
 	$effect(() => {
@@ -42,8 +40,9 @@
 	// #region Start
 
 	// TODO: Refactor width, height and margins. Now graph just cuts out if goes out of bounds
+    // TODO: if data is null, show empty chart, without color
 	function updateGraph(data: any) {
-		d3.select('#chart').selectAll('*').remove();
+		d3.select('#heatmap').selectAll('*').remove();
 
 		const cellMargin = 1;
 		const cellStrokeWidth = 2;
@@ -60,7 +59,7 @@
 		// const width = 1200;
 		const height = 200;
 		const cellSize = 20;
-		const margin = { top: 30, right: 60, bottom: 30, left: 40 };
+		const margin: margin = { top: 30, right: 60, bottom: 30, left: 40 };
 
 		let startColor = '#242424'; // background color
 		let endColor = '#f0e68c'; // light khaki | #535bf2 | 'rgba(0, 0, 0, 0)'
@@ -81,7 +80,7 @@
 
 		// Initialize SVG element
 		const svg = d3
-			.select('#chart')
+			.select('#heatmap')
 			.attr('width', width)
 			.attr('height', height)
 			.append('g')
@@ -90,7 +89,7 @@
 		// Create color scale for cell values
 		const colorScale = d3
 			.scaleLinear()
-			.domain([0, d3.max(data, (d: any) => d.value)])
+			.domain([0, d3.max(data, (d: any) => d.duration)])
 			.range([startColor, endColor]);
 		
 		// Get the first and last date to determine weeks and months
@@ -108,7 +107,7 @@
 			.attr('width', cellSize - cellStrokeWidth - cellMargin) // -2 for stroke(border)
 			.attr('height', cellSize - cellStrokeWidth - cellMargin)
 			.attr('rx', 4)
-			.attr('fill', (d: any) => colorScale(d.value))
+			.attr('fill', (d: any) => colorScale(d.duration))
 			.attr('stroke', cellStrokeColor)
 			.on('mouseover', drawTooltip)
 			.on('mouseout', removeTooltip);
@@ -131,7 +130,7 @@
 				.style('visibility', 'visible')
 				.html(`	
 					<div><strong>Date:</strong> ${formatDate(d.date)}</div>
-					<div><strong>Value:</strong> ${d.value}</div>`
+					<div><strong>Hours:</strong> ${d.duration}</div>`
 				)
 				.style('left', `${tooltipLeft}px`)
 				.style('top', `${tooltipTop}px`)
@@ -195,15 +194,21 @@
 	};
 </script>
 
-<div class="controls">
-	{#each Object.keys(datasets) as year}
-		<button class="mx-2" onclick={() => switchYear(year)}>
-			{year}
-		</button>
-	{/each}
+
+<div class="mt-10">
+    <div id="container" class="flex justify-center">
+        <svg id="heatmap"></svg>
+    </div>
+    
+    <div class="controls">
+        {#each Object.keys(datasets) as year}
+            <button class="mx-2" onclick={() => switchYear(year)}>
+                {year}
+            </button>
+        {/each}
+    </div>
 </div>
 
-<div id="container"><svg id="chart"></svg></div>
 
 <style>
 </style>

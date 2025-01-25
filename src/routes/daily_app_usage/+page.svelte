@@ -6,7 +6,8 @@
         type AppUsageData, 
     } from './load';
 	import D3Chart from "./D3Chart.svelte";
-	import { onMount } from "svelte";
+	import HeatmapCalender from "./HeatmapCalender.svelte";
+
 	
 	let appListReq: Promise<AppList[] | null> | null = $state(null);
 	let appUsageDataReq: Promise<AppUsageData[] | null> | null = $state(null);
@@ -17,8 +18,10 @@
 	appUsageDataReq = fetchAppUsageData(app);
 
 	function getData() {
-		appUsageDataReq = fetchAppUsageData(app);
+		appUsageDataReq = fetchAppUsageData(app);;
 	}
+
+	// TODO: fix components shared id 
 </script> 
 
 
@@ -35,7 +38,7 @@
 
 
 		<D3Chart {data} {app_list} />
-
+		<HeatmapCalender {data} />
 
 	{:catch error}
 		<p class="error">{error.message}</p>
