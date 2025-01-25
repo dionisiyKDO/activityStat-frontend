@@ -1,155 +1,198 @@
-<script>
-	import { onMount } from 'svelte';
+<script lang="ts">
+	// @ts-ignore
 	import * as d3 from 'd3';
+	import { onMount } from 'svelte';
 
-	let chartContainer;
+	let svg: HTMLElement;
+	let data = []; // Default data (current year or range)
+	let allData = {}; // Store data for multiple years
+	let currentYear = 2025; // Default year
 
-	onMount(() => {
-		const margin = { top: 20, right: 30, bottom: 50, left: 50 };
-		const width = 800 - margin.left - margin.right;
-		const height = 400 - margin.top - margin.bottom;
+	// Generate datasets for multiple years
+	const generateYearData = (year: number) => {
+		const data = [];
+		const startDate = new Date(`${year}-01-01`);
+		const endDate = new Date(`${year}-12-31`);
+		let currentDate = startDate;
 
-		// Generate a larger dataset
-		const data = d3.range(0, 100).map((i) => ({
-			date: new Date(2023, 0, 1 + i), // Incrementing dates
-			value: Math.sin(i / 10) * 20 + i + Math.random() * 10 // Sine wave with noise
-		}));
+		while (currentDate <= endDate) {
+			data.push({
+				date: currentDate.toISOString().split('T')[0], // Format YYYY-MM-DD
+				value: Math.floor(Math.random() * 10) // Random value between 0 and 9
+			});
+			currentDate.setDate(currentDate.getDate() + 1);
+		}
 
-		const svg = d3
-			.select(chartContainer)
-			.append('svg')
+		return data;
+	};
+
+	const datasets: any = $state({
+		2025: generateYearData(2025),
+		2024: generateYearData(2024),
+		2023: generateYearData(2023)
+	});
+
+	$inspect(datasets);
+
+	// Initial render
+	$effect(() => {
+		updateGraph(datasets[currentYear]);
+	});
+
+	// #region Start
+
+	function updateGraph(data: any) {
+		const width = 900;
+		const height = 200;
+		const cellSize = 20;
+		const margin = { top: 30, right: 60, bottom: 30, left: 40 };
+
+		const parseDate = d3.timeParse('%Y-%m-%d');
+		const formatDay = d3.timeFormat('%w'); // Day of the week (0-6)
+		const formatWeek = d3.timeWeek.count; // Week number since start of the year
+		const formatMonth = d3.timeFormat('%B'); // Full month name
+		const formatDate = d3.timeFormat('%Y-%m-%d');
+
+		const svgElement = d3
+			.select(svg)
 			.attr('width', width + margin.left + margin.right)
 			.attr('height', height + margin.top + margin.bottom);
 
-		const chartArea = svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);
+		svgElement.selectAll('*').remove(); // Clear previous graph
 
-		const xScale = d3
-			.scaleTime()
-			.domain(d3.extent(data, (d) => d.date))
-			.range([0, width]);
+		const g = svgElement.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-		const yScale = d3
-			.scaleLinear()
-			.domain([0, d3.max(data, (d) => d.value) + 10])
-			.range([height, 0]);
+		// Prepare data for rendering
+		const parsedData = data.map((d) => ({
+			...d,
+			date: parseDate(d.date)
+		}));
+		// Get the first and last date to determine weeks and months
+		const firstDate = d3.min(parsedData, (d) => d.date);
+		const lastDate = d3.max(parsedData, (d) => d.date);
 
-		const xAxis = d3.axisBottom(xScale).ticks(10);
-		const yAxis = d3.axisLeft(yScale);
+		// Create color scale
+		const colorScale = d3
+			.scaleSequential(d3.interpolateBlues)
+			.domain([0, d3.max(parsedData, (d) => d.value)]);
 
-		const line = d3
-			.line()
-			.x((d) => xScale(d.date))
-			.y((d) => yScale(d.value));
+		// Add cells (chronologically correct placement)
+		g.selectAll('rect')
+			.data(parsedData)
+			.enter()
+			.append('rect')
+			.attr('x', (d) => formatWeek(firstDate, d.date) * cellSize) // Week number since start
+			.attr('y', (d) => formatDay(d.date) * cellSize) // Day of the week
+			.attr('width', cellSize - 2)
+			.attr('height', cellSize - 2)
+			.attr('rx', 4)
+			.attr('fill', (d) => colorScale(d.value))
+			.attr('stroke', '#ccc')
+			.on('mouseover', function (event, d) {
+				d3.select(this).attr('stroke', '#000').attr('stroke-width', 2);
+				tooltip
+					.style('visibility', 'visible')
+					.html(
+						`<div><strong>Date:</strong> ${formatDate(d.date)}</div>
+           <div><strong>Value:</strong> ${d.value}</div>`
+					)
+					.style('left', event.pageX + 10 + 'px')
+					.style('top', event.pageY - 28 + 'px');
+			})
+			.on('mouseout', function () {
+				d3.select(this).attr('stroke', '#ccc').attr('stroke-width', 1);
+				tooltip.style('visibility', 'hidden');
+			});
 
-		// Add gridlines
-		function addGridlines() {
-			chartArea
-				.append('g')
-				.attr('class', 'grid x-grid')
-				.attr('transform', `translate(0, ${height})`)
-				.call(d3.axisBottom(xScale).ticks(10).tickSize(-height).tickFormat(''));
+		// Add Y-axis labels (days)
+		const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+		g.selectAll('text.day-label')
+			.data(days)
+			.enter()
+			.append('text')
+			.attr('class', 'day-label')
+			.text((d) => d)
+			.attr('x', -10)
+			.attr('y', (d, i) => i * cellSize + cellSize / 1.5)
+			.attr('text-anchor', 'end')
+			.attr('fill', '#333')
+			.attr('font-size', 12);
 
-			chartArea
-				.append('g')
-				.attr('class', 'grid y-grid')
-				.call(d3.axisLeft(yScale).ticks(10).tickSize(-width).tickFormat(''));
-		}
+		// Add X-axis labels (months)
+		const months = d3.timeMonths(firstDate, d3.timeMonth.offset(lastDate, 1));
+		g.selectAll('text.month-label')
+			.data(months)
+			.enter()
+			.append('text')
+			.attr('class', 'month-label')
+			.text((d) => formatMonth(d))
+			.attr(
+				'x',
+				(d) => formatWeek(firstDate, d) * cellSize + cellSize / 2 // Centered on the first week of the month
+			)
+			.attr('y', -10)
+			.attr('text-anchor', 'start')
+			.attr('fill', '#333')
+			.attr('font-size', 12);
 
-		addGridlines();
+		// Tooltip
+		const tooltip = d3
+			.select('body')
+			.append('div')
+			.attr('class', 'tooltip')
+			.style('position', 'absolute')
+			.style('visibility', 'hidden')
+			.style('background', 'rgba(0, 0, 0, 0.8)')
+			.style('color', '#fff')
+			.style('padding', '8px 12px')
+			.style('border-radius', '4px')
+			.style('font-size', '12px')
+			.style('pointer-events', 'none');
+	}
 
-		// Append line path
-		const linePath = chartArea
-			.append('path')
-			.datum(data)
-			.attr('fill', 'none')
-			.attr('stroke', 'steelblue')
-			.attr('stroke-width', 2)
-			.attr('d', line);
 
-		// Add x and y axes
-		const xAxisGroup = chartArea
-			.append('g')
-			.attr('class', 'x-axis')
-			.attr('transform', `translate(0, ${height})`)
-			.call(xAxis);
-
-		const yAxisGroup = chartArea.append('g').attr('class', 'y-axis').call(yAxis);
-
-		// Brush feature
-		const brush = d3
-			.brushX()
-			.extent([
-				[0, 0],
-				[width, height]
-			])
-			.on('end', brushed);
-
-		const brushGroup = chartArea.append('g').attr('class', 'brush').call(brush);
-
-		function brushed({ selection }) {
-			if (!selection) return;
-
-			const [x0, x1] = selection.map(xScale.invert);
-			xScale.domain([x0, x1]);
-
-			// Update x-axis
-			xAxisGroup.call(xAxis);
-
-			// Update line path
-			linePath.attr('d', line);
-
-			// Clear brush after zoom
-			brushGroup.call(brush.move, null);
-		}
-
-		// Double-click to reset zoom
-		svg.on('dblclick', () => {
-			xScale.domain(d3.extent(data, (d) => d.date));
-			xAxisGroup.call(xAxis);
-			linePath.attr('d', line);
-		});
-
-		// Update the brush to use the currently zoomed xScale
-		function updateBrush() {
-			brush.extent([
-				[0, 0],
-				[width, height]
-			]);
-			brushGroup.call(brush);
-		}
-
-		// Re-apply brush whenever xScale is updated
-		svg.on('dblclick', () => {
-			xScale.domain(d3.extent(data, (d) => d.date));
-			xAxisGroup.call(xAxis);
-			linePath.attr('d', line);
-			updateBrush(); // Update brush extent after reset
-		});
-	});
+	// Switch year
+	const switchYear = (year) => {
+		currentYear = year;
+		updateGraph(datasets[year]);
+	};
 </script>
 
-<div bind:this={chartContainer} class="chart-container"></div>
+<div class="controls">
+	{#each Object.keys(datasets) as year}
+		<button on:click={() => switchYear(year)}>
+			{year}
+		</button>
+	{/each}
+</div>
+
+<svg bind:this={svg} width="850" height="300"></svg>
 
 <style>
-	.chart-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
 	svg {
-		font-family: sans-serif;
-		font-size: 12px;
+		font-family: Arial, sans-serif;
 	}
 
-	.grid .tick line {
-		stroke: #e0e0e0;
+	.controls {
+		margin-bottom: 10px;
 	}
 
-	.brush .selection {
-		fill: #69b3a2;
-		fill-opacity: 0.3;
-		stroke: #69b3a2;
-		shape-rendering: crispEdges;
+	.controls button {
+		margin-right: 10px;
+		padding: 5px 10px;
+		border: none;
+		background: #007bff;
+		color: white;
+		cursor: pointer;
+		border-radius: 4px;
+		font-size: 14px;
+	}
+
+	.controls button:hover {
+		background: #0056b3;
+	}
+
+	.tooltip {
+		pointer-events: none;
 	}
 </style>

@@ -10,7 +10,7 @@
 <div class="flex flex-col h-screen">
 	<Header />
 
-	<main class="flex-1 flex mx-auto w-full flex-col p-4">
+	<main class="flex-1 flex mx-auto w-full flex-col p-4 max-w-7xl">
 		{@render children()}
 	</main>
 
@@ -20,7 +20,7 @@
 
 
 <style>
-	main {
+	/* main {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -29,5 +29,5 @@
 		max-width: 64rem;
 		margin: 0 auto;
 		box-sizing: border-box;
-	}
+	} */
 </style>
