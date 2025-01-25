@@ -89,7 +89,7 @@
 		// Create color scale for cell values
 		const colorScale = d3
 			.scaleLinear()
-			.domain([0, d3.max(data, (d: any) => d.duration)])
+			.domain([0, d3.max(data, (d: any) => d.duration) == 0 ? 1 : d3.max(data, (d: any) => d.duration)])
 			.range([startColor, endColor]);
 		
 		// Get the first and last date to determine weeks and months
