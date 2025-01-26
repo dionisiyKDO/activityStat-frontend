@@ -9,24 +9,30 @@
 	import HeatmapCalender from "./HeatmapCalender.svelte";
 	import MultiSelect from "./MultiSelect.svelte";
 
+	const app1: App = { app: 'GenshinImpact.exe', title: 'Genshin Impact' };
+	const app2: App = { app: 'StarRail.exe', title: 'Honkai Star Rail' };
+	const app3: App = { app: 'ZenlessZoneZero.exe', title: 'ZenlessZoneZero' };
+	let list: App[] = $state([app1, app2, app3]);
 	
 	let appListReq: Promise<App[] | null> | null = $state(null);
 	let appUsageDataReq: Promise<AppUsageData[] | null> | null = $state(null);
 
-	let app: string = $state("zen.exe");
-
 	appListReq = fetchAppList();
-	appUsageDataReq = fetchAppUsageData(app);
+	appUsageDataReq = fetchAppUsageData(list);
 
+	// TODO: think of a way to check what apps data already fetched
+	// After selection - delete not selected, keep what i have, fetch new
 	function getData() {
-		appUsageDataReq = fetchAppUsageData(app);
+		appUsageDataReq = fetchAppUsageData(list);
 	}
 
-	let list: App[] = $state([]);
-	$inspect(list);
+	function clearSelecteAppsList() {
+		list = [];
+	}
 </script> 
 
 
+<!-- //  let app: string = $state("zen.exe"); -->
 <!-- <div class="flex flex-col mb-2">
 	<input class="p-1 rounded-lg text-xl" id="app" type="text" bind:value={app} onfocusout={getData} />
 </div> -->
@@ -35,13 +41,9 @@
 {#await appListReq}
 	<p class="loading">Loading app list...</p>
 {:then app_list}
-	<div class="flex gap-2">
-		{#each list as app}
-			{app.title}
-		{/each}
-	</div>
 	<div class="flex justify-center">
 		<div class="flex gap-4">
+			<button class="w-40" onclick={getData}>Clear Data</button>
 			<MultiSelect {app_list} bind:selectedApps={list}/>
 			<button class="w-40" onclick={getData}>Get Data</button>
 		</div>
