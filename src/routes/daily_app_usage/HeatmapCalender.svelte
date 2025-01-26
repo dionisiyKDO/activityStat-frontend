@@ -9,32 +9,48 @@
     let datasets = $derived(groupByYear(data));
 
     function groupByYear(data: AppUsageData[] | null) {
-        let result = data?.map((d: any) => ({
-            date: new Date(d.timestamp).toISOString().split('T')[0],
-            duration: d.duration
-        }))
-        
-        return result?.reduce((acc: any, item: any) => {
-            const year = new Date(item.date).getFullYear();
-            if (!acc[year]) {
-                acc[year] = [];
-            }
-            acc[year].push(item);
-            return acc;
-        }, {});
-    }
+		const result = data?.reduce((acc: Record<number, { date: string, duration: number }[]>, d: AppUsageData) => {
+			// Extract the year
+			const date = new Date(d.timestamp).toISOString().split('T')[0];
+			
+			// Check if this year exists in the accumulator
+			const year = new Date(date).getFullYear();
+			if (!acc[year]) {
+				// acc[year] = []; // If not, create an empty array for that year
 
-    $inspect(datasets);
+				// Generate all dates for the entire year
+				const startDate = new Date(year, 0, 2);
+				const endDate = new Date(year, 11, 31);
+				
+				acc[year] = [];
+				for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+					acc[year].push({ 
+						date: d.toISOString().split('T')[0], 
+						duration: 0 
+					});
+				}
+			}	
 
+			// Look for existing entry with same date
+			const existingEntry = acc[year].find(item => item.date === date);
+			if (existingEntry) { // If found, add current duration to existing entry
+				existingEntry.duration = Number((existingEntry.duration + d.duration).toFixed(2));
+			} else { // If not found, create new entry
+				acc[year].push({ date, duration: Number((d.duration).toFixed(2)) });
+			}
+
+			return acc;
+		}, {});
+
+   		return result;
+	}
 
 	let svg: HTMLElement;
-	// let data = []; // Default data (current year or range)
-	let allData = {}; // Store data for multiple years
-	let currentYear = 2025; // Default year
+	let currentYear = 2024; // Default year
 
 	// Initial render
 	$effect(() => {
-		updateGraph(datasets[currentYear]);
+		updateGraph(datasets![currentYear]);
 	});
 
 	// #region Start
@@ -190,7 +206,7 @@
 	// Switch year
 	const switchYear = (year: any) => {
 		currentYear = year;
-		updateGraph(datasets[year]);
+		updateGraph(datasets![year]);
 	};
 </script>
 
@@ -201,7 +217,7 @@
     </div>
     
     <div class="controls">
-        {#each Object.keys(datasets) as year}
+        {#each Object.keys(datasets!) as year}
             <button class="mx-2" onclick={() => switchYear(year)}>
                 {year}
             </button>

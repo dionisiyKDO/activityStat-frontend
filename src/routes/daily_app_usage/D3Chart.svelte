@@ -12,8 +12,6 @@
 		})
 	);
 
-	$inspect(data);
-
 	// d3.extent(data, (d: any) => d.date) 	- ['1999-01-01T00:00:00.000Z', '2050-01-01T00:00:00.000Z']
 	// .toISOString().split('T') 			- ['1999-01-01', '0:00:00.000Z']
 	let start_date = d3.extent(data, (d: any) => d.date)[0].toISOString().split('T')[0];
