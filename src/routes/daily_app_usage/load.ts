@@ -42,12 +42,12 @@ export async function fetchAppUsageData(app: string): Promise<AppUsageData[] | n
 }
 
 
-export interface AppList {
+export interface App {
 	app: string
 	title: string
 }
   
-export async function fetchAppList(): Promise<AppList[] | null>  {
+export async function fetchAppList(): Promise<App[] | null>  {
 	try {
 		const response = await fetch("/api/app_list/");
 

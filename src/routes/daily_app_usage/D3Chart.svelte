@@ -2,10 +2,10 @@
 	// @ts-ignore: Ignore TS errors for d3 library
 	import * as d3 from 'd3';
 	import { onMount } from 'svelte';
-	import { type AppUsageData, type AppList, type margin } from './load';
+	import { type AppUsageData, type margin } from './load';
 
 	// #region Data Preparation
-	let { data, app_list }: { data: AppUsageData[] | null; app_list: AppList[] | null } = $props();
+	let { data }: { data: AppUsageData[] | null } = $props();
 	let filteredData = $derived(
 		data?.filter((d: any) => {
 			return d.date >= new Date(start_date) && d.date <= new Date(end_date);
