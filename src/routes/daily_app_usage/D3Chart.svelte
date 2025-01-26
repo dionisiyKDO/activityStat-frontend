@@ -14,8 +14,12 @@
 
 	// d3.extent(data, (d: any) => d.date) 	- ['1999-01-01T00:00:00.000Z', '2050-01-01T00:00:00.000Z']
 	// .toISOString().split('T') 			- ['1999-01-01', '0:00:00.000Z']
-	let start_date = d3.extent(data, (d: any) => d.date)[0].toISOString().split('T')[0];
-	let end_date = d3.extent(data, (d: any) => d.date)[1].toISOString().split('T')[0];
+	const start_date = d3.extent(data, (d: any) => d.date)[0].toISOString().split('T')[0];
+	const end_date = d3.extent(data, (d: any) => d.date)[1].toISOString().split('T')[0];
+	
+	let start_date_label = $state(d3.extent(data, (d: any) => d.date)[0].toISOString().split('T')[0]);
+	let end_date_label = $state(d3.extent(data, (d: any) => d.date)[1].toISOString().split('T')[0]);
+
 	let animDuration = 0; // better keep it zero for performance
 	// #endregion
 	
@@ -593,6 +597,11 @@
 				const x0 = const_xScale_brush.invert(selection[0]);
 				const x1 = const_xScale_brush.invert(selection[1]);
 
+				console.log(x0.toISOString().split('T')[0]);
+				
+				start_date_label = x0.toISOString().split('T')[0];
+				end_date_label = x1.toISOString().split('T')[0];
+
 				// Update main chart with the selected range
 				updateChart(x0, x1);
 
@@ -611,6 +620,9 @@
 
 				// Reset xScale_brush and main chart
 				xScale_brush.domain(fullExtent);
+
+				start_date_label = fullExtent[0];
+				end_date_label = fullExtent[1];
 				updateChart(fullExtent[0], fullExtent[1]);
 
 				// Clear brush selection
@@ -633,8 +645,8 @@
 
 <div id="container">
 	<div class="my-2 flex justify-center gap-4" style="color: #777;">
-		<span>Start Date: {start_date}</span>
-		<span>End Date: {end_date}</span>
+		<span>Start Date: {start_date_label}</span>
+		<span>End Date: {end_date_label}</span>
 	</div>
 	<svg id="brush"></svg>
 	<svg id="chart"></svg>

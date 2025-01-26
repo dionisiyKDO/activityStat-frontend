@@ -70,9 +70,8 @@
 		const fontSize = 14;
 
 		const container = d3.select('#container');
-		// const margin: margin = { top: 10, right: 30, bottom: 30, left: 60 };
-		const width = container.node().getBoundingClientRect().width;
-		// const width = 1200;
+		// const width = container.node().getBoundingClientRect().width;
+		const width = 1100;
 		const height = 200;
 		const cellSize = 20;
 		const margin: margin = { top: 30, right: 60, bottom: 30, left: 40 };
@@ -211,14 +210,14 @@
 </script>
 
 
-<div class="mt-10">
+<div class="mt-10 flex flex-col justify-center">
     <div id="container" class="flex justify-center">
         <svg id="heatmap"></svg>
     </div>
     
-    <div class="controls">
+    <div class="controls flex gap-2 justify-center">
         {#each Object.keys(datasets!) as year}
-            <button class="mx-2" onclick={() => switchYear(year)}>
+            <button onclick={() => switchYear(year)}>
                 {year}
             </button>
         {/each}
