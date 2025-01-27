@@ -86,6 +86,7 @@
         } else {
             selectedApps = [...selectedApps, app];
         }
+        console.log(selectedApps);
     };
 
     const filteredApps = () => {

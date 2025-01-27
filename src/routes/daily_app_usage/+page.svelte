@@ -10,6 +10,59 @@
 	import MultiSelect from "./MultiSelect.svelte";
     import Chip from './Chip.svelte';
 
+	// Presets
+	const preset_hoyo: App[] = [
+		{ app: 'GenshinImpact.exe', title: 'Genshin Impact' },
+		{ app: 'StarRail.exe', title: 'Honkai Star Rail' },
+		{ app: 'ZenlessZoneZero.exe', title: 'ZenlessZoneZero' }
+	];
+	const preset_gacha: App[] = [
+			{
+				"app": "GenshinImpact.exe",
+				"title": "Genshin Impact"
+			},
+			{
+				"app": "StarRail.exe",
+				"title": "Honkai Star Rail"
+			},
+			{
+				"app": "ZenlessZoneZero.exe",
+				"title": "ZenlessZoneZero"
+			},
+			{
+				"app": "StarRail.exe",
+				"title": "Honkai: Star Rail"
+			},
+			{
+				"app": "dnplayer.exe",
+				"title": "LDPlayer"
+			},
+			{
+				"app": "reverse1999.exe",
+				"title": "Reverse 1999"
+			},
+			{
+				"app": "Client-Win64-Shipping.exe",
+				"title": "Wuthering Waves"
+			},
+			{
+				"app": "nikke.exe",
+				"title": "Goddess of Victory: Nikke"
+			},
+			{
+				"app": "ZenlessZoneZero.exe",
+				"title": "Zenless Zone Zero"
+			},
+			{
+				"app": "X6Game-Win64-Shipping.exe",
+				"title": "Infinity Nikki"
+			},
+			{
+				"app": "GF2_Exilium.exe",
+				"title": "GF2 Exilium"
+			}
+	];
+
 	// Default apps
 	const app1: App = { app: 'GenshinImpact.exe', title: 'Genshin Impact' };
 	const app2: App = { app: 'StarRail.exe', title: 'Honkai Star Rail' };
@@ -54,24 +107,26 @@
 </script> 
 
 
-<!-- 
-show selected apps somewhere
-preset buttons for bundle of apps
+<!-- TODO:
 on chart titles on tooltip instead of exe
 
+check calc duration on heatmap for multiple lines. 
+	on day 24-07-06 for preset 'gacha', duration is 26.5 hours
+
 heatmap tooltip doesn't move with page scroll, it has position absolute
+add legend to line chart to disable some lines
+	add button to disable/enable ALL lines
 -->
 
 <div class="flex flex-col gap-4 p-6">
-	<h1 class="text-3xl font-bold text-[#E6D5C3]">App Usage Analytics</h1>
+	<h1 class="text-3xl font-bold text-[--secondary]">App Usage Analytics</h1>
 
 	<!-- Controls -->
 	<div class="preview-container">
 		<!-- Presets -->
 		<div class="flex gap-2">
-			<button class="button">Preset 1</button>
-			<button class="button">Preset 2</button>
-			<button class="button">Preset 3</button>
+			<button class="button" onclick={() => selectPreset(preset_hoyo)}>Gi/HSR/ZZZ</button>
+			<button class="button" onclick={() => selectPreset(preset_gacha)}>Gacha</button>
 		</div>
 		<div class="border-b border-solid border-[--border] pb-4"></div>
 		<!-- Multiselect -->
@@ -92,7 +147,7 @@ heatmap tooltip doesn't move with page scroll, it has position absolute
 			{/await}
 		</div>
 		<!-- Chips -->
-		<div class="flex flex-wrap gap-2 mx-2 my-1 h-12">
+		<div class="flex flex-wrap gap-2 mx-2 my-1">
 			{#each list as app}
 				<Chip {app} onRemove={() => removeSelected(app)} />
 			{/each}

@@ -596,8 +596,6 @@
 				// Invert selection to date range
 				const x0 = const_xScale_brush.invert(selection[0]);
 				const x1 = const_xScale_brush.invert(selection[1]);
-
-				console.log(x0.toISOString().split('T')[0]);
 				
 				start_date_label = x0.toISOString().split('T')[0];
 				end_date_label = x1.toISOString().split('T')[0];
