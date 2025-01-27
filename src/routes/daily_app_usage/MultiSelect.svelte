@@ -138,53 +138,51 @@
     };
 </script>
 
-<div class="relative">
-    <input
-        type="text"
-        placeholder="Select apps"
-        bind:value={searchTerm}
-        onfocus={() => isDropdownOpen = true}
-        oninput={() => {
-            isDropdownOpen = true;
-            highlightedIndex = -1;
+<input
+    type="text"
+    placeholder="Select apps"
+    bind:value={searchTerm}
+    onfocus={() => isDropdownOpen = true}
+    oninput={() => {
+        isDropdownOpen = true;
+        highlightedIndex = -1;
+    }}
+    onkeydown={handleKeyDown}
+    class="input"
+/>
+{#if isDropdownOpen}
+    <ul
+        bind:this={listRef}
+        class="absolute z-10 mt-1 max-h-60 w-64 overflow-auto rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        onmouseleave={() => {
+            if (searchTerm === '') isDropdownOpen = false;
         }}
-        onkeydown={handleKeyDown}
-        class="w-64 rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-    />
-    {#if isDropdownOpen}
-        <ul
-            bind:this={listRef}
-            class="absolute z-10 mt-1 max-h-60 w-64 overflow-auto rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-            onmouseleave={() => {
-                if (searchTerm === '') isDropdownOpen = false;
-            }}
-        >
-            {#if filteredApps().length === 0}
-                <li class="px-4 py-2 text-center text-sm text-gray-500">No results found</li>
-            {:else}
-                {#each filteredApps() as app, index}
-                    <!-- svelte-ignore a11y_click_events_have_key_events -->
-                    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-                    <li
-                        class="
-                            cursor-pointer 
-                            px-4 py-2 
-                            hover:bg-gray-100 
-                            {index === highlightedIndex ? 'bg-gray-200' : ''}
-                            {selectedApps.some(selected => selected.title === app.title) 
-                                ? 'bg-indigo-100 text-indigo-900' 
-                                : 'text-gray-900'}
-                        "
-                        onclick={() => {
-                            toggleSelect(app);
-                            if (filteredApps().length === 1) isDropdownOpen = false;
-                        }}
-                    >
-                        {app.title}
-                    </li>
-                {/each}
-            {/if}
-        </ul>
-    {/if}
-</div>
+    >
+        {#if filteredApps().length === 0}
+            <li class="px-4 py-2 text-center text-sm text-gray-500">No results found</li>
+        {:else}
+            {#each filteredApps() as app, index}
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+                <li
+                    class="
+                        cursor-pointer 
+                        px-4 py-2 
+                        hover:bg-gray-100 
+                        {index === highlightedIndex ? 'bg-gray-200' : ''}
+                        {selectedApps.some(selected => selected.title === app.title) 
+                            ? 'bg-indigo-100 text-indigo-900' 
+                            : 'text-gray-900'}
+                    "
+                    onclick={() => {
+                        toggleSelect(app);
+                        if (filteredApps().length === 1) isDropdownOpen = false;
+                    }}
+                >
+                    {app.title}
+                </li>
+            {/each}
+        {/if}
+    </ul>
+{/if}
 

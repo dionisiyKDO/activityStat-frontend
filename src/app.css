@@ -9,7 +9,7 @@
 
 	color-scheme: light dark;
 	color: rgba(255, 255, 255, 0.87);
-	/* background-color: #242424; */
+	background-color: #242424;
 
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
@@ -17,22 +17,99 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
+
+:root {
+	--background: #121212;
+	--card: #1f1f1f;
+	--primary: #bb86fc;
+	--primary-foreground: #ffffff;
+	--secondary: #03dac6;
+	--secondary-foreground: #121212;
+	--muted: #2c2c2c;
+	--muted-foreground: #bdbdbd;
+	--accent: #ff8c00;
+	--accent-foreground: #121212;
+	--destructive: #cf6679;
+	--destructive-foreground: #121212;
+	--border: #333333;
+	--input: #2a2a2a;
+	--ring: #03dac6;
+	--foreground: #e0e0e0;
+}
+:root {
+	--background: #09090b;
+	--card: #252020;
+	--primary: #c97d4e;
+	--primary-foreground: #1e1612;
+	--secondary: #7a5a4a;
+	--secondary-foreground: #e6d5c3;
+	--muted: #4a3b32;
+	--muted-foreground: #ceb8a2;
+	--accent: #b86f4a;
+	--accent-foreground: #1e1612;
+	--destructive: #8b4b3b;
+	--destructive-foreground: #e6d5c3;
+	--border: #4a3b32;
+	--input: #251d19;
+	--ring: #c97d4e;
+	--foreground: #e6d5c3;
+}
+:root {
+	--background: #242424ff; /* Eerie Black */
+	--card: #2e2e2eff; /* Slightly lighter Eerie Black for contrast */
+	--primary: #646cffff; /* Neon Blue */
+	--primary-foreground: #ffffff; /* Ensures readability on Neon Blue */
+	--secondary: #cfd6eaff; /* Lavender Web */
+	--secondary-foreground: #242424ff; /* Works well with Lavender Web */
+	--muted: #343434ff; /* A muted Eerie Black */
+	--muted-foreground: #a6a6a6ff; /* A soft gray for subtle elements */
+	--accent: #fdcff3ff; /* Mimi Pink */
+	--accent-foreground: #242424ff; /* High contrast against Mimi Pink */
+	--destructive: #ef6f6cff; /* Light Coral */
+	--destructive-foreground: #ffffff; /* Stands out on Light Coral */
+	--border: #3e3e3eff; /* A subtle border shade derived from Eerie Black */
+	--input: #2e2e2eff; /* Matches card for consistency */
+	--ring: #646cffff; /* Neon Blue for focus/active states */
+	--foreground: #cfd6eaff; /* Lavender Web for text on dark background */
+}
+
+
+
+@layer base {
+    /* html {
+        font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    } */
+
+	/* body {
+		background-color: var(--background);
+	} */
+}
+
 @layer components {
 	.preview-container {
 		@apply 
-		rounded-lg border border-solid border-[--border] 
+		rounded-lg border-2 border-solid border-[--border] 
 		bg-[--card]
 		flex flex-col gap-2
 		p-4
 		min-h-40;
 	}
 
-    .preview {
+    .input {
+        @apply 
+		rounded-lg border border-solid border-[--border] 
+		bg-[--card]
+		w-full
+		px-3 py-1;
+    }
+
+	.button {
         @apply 
 		rounded-lg border border-solid border-[--border] 
 		bg-[--card] 
 		px-3 py-1;
-    }
+	}
+
 	.preview-chip {
         @apply 
 		rounded-2xl 
@@ -43,54 +120,7 @@
 
 }
 
-:root{
-	/* Rich espresso base */
-	--background: #1e1917;
 
-	/* Mocha surface */
-	/* --card: #252020; */
-	--card: #272323;
-
-	/* Caramel accent */
-	--primary: #d4a373;
-	--primary-foreground: #1e1917;
-
-	/* Coffee crema secondary */
-	--secondary: #8b6d5c;
-	--secondary-foreground: #e6d5c3;
-
-	/* Roasted coffee muted */
-	--muted: #4a3b32;
-	--muted-foreground: #ceb8a2;
-
-	/* Latte accent */
-	--accent: #b68f65;
-	--accent-foreground: #1e1917;
-
-	/* Dark roast destructive */
-	--destructive: #8b4b3b;
-	--destructive-foreground: #e6d5c3;
-
-	/* Coffee bean border */
-	--border: #4a3b32;
-
-	/* Form elements */
-	--input: #252020;
-	--ring: #d4a373;
-
-	/* Base text color - warm cream */
-	--foreground: #e6d5c3;
-}
-
-
-body {
-	margin: 0;
-	/* display: flex; */
-	place-items: center;
-	min-width: 320px;
-	min-height: 100vh;
-	background-color: #242424;
-}
 
 strong {
 	font-weight: 600;

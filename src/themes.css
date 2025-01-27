@@ -1,0 +1,208 @@
+
+:root {
+	--background: ;
+	--card: ;
+	--primary: ;
+	--primary-foreground: ;
+	--secondary: ;
+	--secondary-foreground: ;
+	--muted: ;
+	--muted-foreground: ;
+	--accent: ;
+	--accent-foreground: ;
+	--destructive: ;
+	--destructive-foreground: ;
+	--border: ;
+	--input: ;
+	--ring: ;
+	--foreground: ;
+}
+
+/* og */
+:root {
+	--background: #09090b;
+	--card: #252020;
+	--primary: #c97d4e;
+	--primary-foreground: #1e1612;
+	--secondary: #7a5a4a;
+	--secondary-foreground: #e6d5c3;
+	--muted: #4a3b32;
+	--muted-foreground: #ceb8a2;
+	--accent: #b86f4a;
+	--accent-foreground: #1e1612;
+	--destructive: #8b4b3b;
+	--destructive-foreground: #e6d5c3;
+	--border: #4a3b32;
+	--input: #251d19;
+	--ring: #c97d4e;
+	--foreground: #e6d5c3;
+}
+
+
+/* modifiyd old */
+:root {
+	--background: #242424ff; /* Eerie Black */
+	--card: #2e2e2eff; /* Slightly lighter Eerie Black for contrast */
+	--primary: #646cffff; /* Neon Blue */
+	--primary-foreground: #ffffff; /* Ensures readability on Neon Blue */
+	--secondary: #cfd6eaff; /* Lavender Web */
+	--secondary-foreground: #242424ff; /* Works well with Lavender Web */
+	--muted: #343434ff; /* A muted Eerie Black */
+	--muted-foreground: #a6a6a6ff; /* A soft gray for subtle elements */
+	--accent: #fdcff3ff; /* Mimi Pink */
+	--accent-foreground: #242424ff; /* High contrast against Mimi Pink */
+	--destructive: #ef6f6cff; /* Light Coral */
+	--destructive-foreground: #ffffff; /* Stands out on Light Coral */
+	--border: #3e3e3eff; /* A subtle border shade derived from Eerie Black */
+	--input: #2e2e2eff; /* Matches card for consistency */
+	--ring: #646cffff; /* Neon Blue for focus/active states */
+	--foreground: #cfd6eaff; /* Lavender Web for text on dark background */
+}
+:root {
+	--background: #1c1c1cff; /* Darker Eerie Black */
+	--card: #262626ff; /* Slightly lighter but still darker Eerie Black */
+	--primary: #535affff; /* Darkened Neon Blue */
+	--primary-foreground: #e4e4e4ff; /* Softer white for readability */
+	--secondary: #b8bfd9ff; /* Darkened Lavender Web */
+	--secondary-foreground: #1c1c1cff; /* High contrast for dark background */
+	--muted: #2a2a2aff; /* Muted dark gray */
+	--muted-foreground: #8f8f8fff; /* A more subdued gray for text */
+	--accent: #f9bde4ff; /* Slightly darker Mimi Pink */
+	--accent-foreground: #1c1c1cff; /* Ensures high contrast */
+	--destructive: #d65a5aff; /* Darkened Light Coral */
+	--destructive-foreground: #ffffff; /* Keeps text legible */
+	--border: #2a2a2aff; /* Dark border shade */
+	--input: #262626ff; /* Matches card for consistency */
+	--ring: #535affff; /* Darkened Neon Blue for focus states */
+	--foreground: #b8bfd9ff; /* Darker Lavender Web for text on dark */
+}
+
+
+
+
+:root {
+	--background: #121212;
+	--card: #1f1f1f;
+	--primary: #bb86fc;
+	--primary-foreground: #ffffff;
+	--secondary: #03dac6;
+	--secondary-foreground: #121212;
+	--muted: #2c2c2c;
+	--muted-foreground: #bdbdbd;
+	--accent: #ff8c00;
+	--accent-foreground: #121212;
+	--destructive: #cf6679;
+	--destructive-foreground: #121212;
+	--border: #333333;
+	--input: #2a2a2a;
+	--ring: #03dac6;
+	--foreground: #e0e0e0;
+}
+:root {
+	--background: #181b20;
+	--card: #20262c;
+	--primary: #acd9e8;
+	--primary-foreground: #181b20;
+	--secondary: #f2b9c6;
+	--secondary-foreground: #181b20;
+	--muted: #48515b;
+	--muted-foreground: #d2d9de; 
+	--accent: #c9e8b8; 
+	--accent-foreground: #181b20;
+	--destructive: #f4a8a8;
+	--destructive-foreground: #181b20;
+	--border: #313a45; 
+	--input: #232a31;
+	--ring: #acd9e8;
+	--foreground: #d9dde0;
+}
+:root {
+	--background: #1E2C28; 
+	--card: #283934; 
+	--primary: #A0D9CC;
+	--primary-foreground: #182421; 
+	--secondary: #78B7A5; 
+	--secondary-foreground: #1A2924; 
+	--muted: #4D6B63; 
+	--muted-foreground: #C1E5DD;
+	--accent: #E0F7F4; 
+	--accent-foreground: #213934; 
+	--destructive: #96D1C4;
+	--destructive-foreground: #1A2622; 
+	--border: #3C564F; 
+	--input: #304741; 
+	--ring: #BDE9DF; 
+	--foreground: #D6F4ED; 
+}
+:root {
+	--background: #121212;
+	--card: #1c1c1c;
+	--primary: #ff7f50;
+	--primary-foreground: #ffffff;
+	--secondary: #ffa500;
+	--secondary-foreground: #ffffff;
+	--muted: #292929;
+	--muted-foreground: #a3a3a3;
+	--accent: #ffd700;
+	--accent-foreground: #000000;
+	--destructive: #dc2626;
+	--destructive-foreground: #ffffff;
+	--border: #292929;
+	--input: #1c1c1c;
+	--ring: #ff7f50;
+	--foreground: #d1d1d1;
+}
+:root {
+	--background: #0d1117;
+	--card: #161b22;
+	--primary: #1f6feb;
+	--primary-foreground: #ffffff;
+	--secondary: #8b949e;
+	--secondary-foreground: #cdd9e5;
+	--muted: #21262d;
+	--muted-foreground: #8b949e;
+	--accent: #58a6ff;
+	--accent-foreground: #000000;
+	--destructive: #f85149;
+	--destructive-foreground: #ffffff;
+	--border: #30363d;
+	--input: #161b22;
+	--ring: #1f6feb;
+	--foreground: #cdd9e5;
+}
+:root {
+	--background: #101010;
+	--card: #181818;
+	--primary: #e94560;
+	--primary-foreground: #ffffff;
+	--secondary: #533483;
+	--secondary-foreground: #ffffff;
+	--muted: #282828;
+	--muted-foreground: #a3a3a3;
+	--accent: #22a6b3;
+	--accent-foreground: #ffffff;
+	--destructive: #e74c3c;
+	--destructive-foreground: #ffffff;
+	--border: #282828;
+	--input: #181818;
+	--ring: #e94560;
+	--foreground: #dcdcdc;
+}
+:root {
+	--background: #121212;
+	--card: #1a1a1a;
+	--primary: #4caf50;
+	--primary-foreground: #ffffff;
+	--secondary: #81c784;
+	--secondary-foreground: #ffffff;
+	--muted: #2e2e2e;
+	--muted-foreground: #a3a3a3;
+	--accent: #ffb74d;
+	--accent-foreground: #000000;
+	--destructive: #e53935;
+	--destructive-foreground: #ffffff;
+	--border: #2e2e2e;
+	--input: #1a1a1a;
+	--ring: #4caf50;
+	--foreground: #d9d9d9;
+}

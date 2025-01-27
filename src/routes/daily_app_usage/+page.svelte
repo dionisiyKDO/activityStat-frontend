@@ -10,31 +10,47 @@
 	import MultiSelect from "./MultiSelect.svelte";
     import Chip from './Chip.svelte';
 
+	// Default apps
 	const app1: App = { app: 'GenshinImpact.exe', title: 'Genshin Impact' };
 	const app2: App = { app: 'StarRail.exe', title: 'Honkai Star Rail' };
 	const app3: App = { app: 'ZenlessZoneZero.exe', title: 'ZenlessZoneZero' };
 	let list: App[] = $state([app1, app2, app3]);
 	
-	let appListReq: Promise<App[] | null> | null = $state(null);
 	let appUsageDataReq: Promise<AppUsageData[] | null> | null = $state(null);
+	let appListReq: Promise<App[] | null> | null = $state(null);
 
-	appListReq = fetchAppList();
 	// svelte-ignore state_referenced_locally
 	appUsageDataReq = fetchAppUsageData(list);
+	appListReq = fetchAppList();
 
 	// TODO: think of a way to check what apps data already fetched
 	// After selection - delete not selected, keep what i have, fetch new
-	function getData() {
-		appUsageDataReq = fetchAppUsageData(list);
-	}
+	function getData() { appUsageDataReq = fetchAppUsageData(list); }
+	function clearSelecteAppsList() { list = []; }
+	const removeSelected = (app: App) => { list = list.filter((f) => f.title !== app.title); };
+	const selectPreset = (apps: App[]) => { list = apps; };
+	
+	
+	
+	// Tab Logic
+    // const tabTriggers = document.querySelectorAll('.tab-trigger');
+    // const tabContents = document.querySelectorAll('.tab-content');
 
-	function clearSelecteAppsList() {
-		list = [];
-	}
+    // tabTriggers.forEach(trigger => {
+    //   trigger.addEventListener('click', () => {
+    //     const target = trigger.getAttribute('data-target');
 
-	const removeSelected = (app: App) => {
-		list = list.filter((f) => f.title !== app.title);
-	};
+    //     // Remove active class from all triggers and contents
+    //     tabTriggers.forEach(t => t.classList.remove('active'));
+    //     tabContents.forEach(c => c.classList.remove('active'));
+
+    //     // Add active class to the clicked trigger and corresponding content
+    //     trigger.classList.add('active');
+    //     document.getElementById(target).classList.add('active');
+    //   });
+    // });
+
+
 </script> 
 
 
@@ -46,121 +62,56 @@ on chart titles on tooltip instead of exe
 heatmap tooltip doesn't move with page scroll, it has position absolute
 -->
 
-
-{#await appListReq}
-	<p class="loading">Loading app list...</p>
-{:then app_list}
-	<!-- Chips -->
-	<div class="flex flex-wrap justify-center gap-2 mb-2">
-		{#each list as app}
-			<Chip {app} onRemove={() => removeSelected(app)} />
-		{/each}
-	</div>
-
-	<!-- Multiselect -->
-	<div class="flex justify-center">
-		<div class="flex gap-4">
-			<button class="w-40" onclick={clearSelecteAppsList}>Clear Data</button>
-			<MultiSelect {app_list} bind:selectedApps={list}/>
-			<button class="w-40" onclick={getData}>Get Data</button>
-		</div>
-	</div>
-{:catch error}
-	<p class="error">{error.message}</p>
-{/await}
-
-
-{#await appUsageDataReq}
-	<p class="loading">Loading data...</p>
-{:then data} 
-	<D3Chart {data} />
-	<HeatmapCalender {data} />
-
-{:catch error}
-	<p class="error">{error.message}</p>
-{/await}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- for comment's replace '- -' to '--' -->
-<!-- <div class="flex flex-col gap-4 p-4">
+<div class="flex flex-col gap-4 p-6">
 	<h1 class="text-3xl font-bold text-[#E6D5C3]">App Usage Analytics</h1>
 
+	<!-- Controls -->
 	<div class="preview-container">
-		<!- - Presets - ->
-		<div class="preview">Presets</div>
-		<hr class="border-solid border-[- -muted] border-t-0 border-b-2" />
-		<!- - Multiselect - ->
+		<!-- Presets -->
 		<div class="flex gap-2">
-			<div class="preview grow">Multiselect</div>
-			<div class="">
-				<button class="preview">Get Data</button>
-				<button class="preview">Clear Data</button>
-			</div>
+			<button class="button">Preset 1</button>
+			<button class="button">Preset 2</button>
+			<button class="button">Preset 3</button>
 		</div>
-		<!- - Chips - ->
-		<div class="flex gap-2">
-			<div class="preview-chip">Chip1 X</div>
-			<div class="preview-chip">Chip2 X</div>
-			<div class="preview-chip">Chip3 X</div>
-			<div class="preview-chip">Chip4 X</div>
-			<div class="preview-chip">Chip5 X</div>
+		<div class="border-b border-solid border-[--border] pb-4"></div>
+		<!-- Multiselect -->
+		<div class="flex gap-2 pt-4">
+			{#await appListReq}
+				<p class="loading">Loading app list...</p>
+			{:then app_list}
+				<div class="preview grow relative">
+					<MultiSelect {app_list} bind:selectedApps={list}/>
+				</div>
+			
+				<div class="">
+					<button class="button" onclick={getData}>Get Data</button>
+					<button class="button" onclick={clearSelecteAppsList}>Clear Data</button>
+				</div>
+			{:catch error}
+				<p class="error">{error.message}</p>
+			{/await}
+		</div>
+		<!-- Chips -->
+		<div class="flex flex-wrap gap-2 mx-2 my-1 h-12">
+			{#each list as app}
+				<Chip {app} onRemove={() => removeSelected(app)} />
+			{/each}
 		</div>
 	</div>
 
+	<!-- Charts -->
 	<div class="preview-container">
-		<div class="tabs">
-			<!- - Tab List - ->
-			<div class="tab-list">
-				<button class="tab-trigger active" data-target="line">Line Graph</button>
-				<button class="tab-trigger" data-target="heatmap">Heatmap</button>
-			</div>
-		
-			<!- - Tab Content - ->
-			<div id="line" class="tab-content active">
-			  	<div class="placeholder">Line Chart Placeholder</div>
-			</div>
-		
-			<div id="heatmap" class="tab-content">
-			  	<div class="placeholder">Heatmap Placeholder</div>
-			</div>
-		</div>
+		{#await appUsageDataReq}
+			<p class="loading">Loading data...</p>
+		{:then data} 
+			<D3Chart {data} />
+			<HeatmapCalender {data} />
+		{:catch error}
+			<p class="error">{error.message}</p>
+		{/await}
 	</div>
 
 </div> 
-
-
-<script>
-	// Tab Logic
-    const tabTriggers = document.querySelectorAll('.tab-trigger');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabTriggers.forEach(trigger => {
-      trigger.addEventListener('click', () => {
-        const target = trigger.getAttribute('data-target');
-
-        // Remove active class from all triggers and contents
-        tabTriggers.forEach(t => t.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
-
-        // Add active class to the clicked trigger and corresponding content
-        trigger.classList.add('active');
-        document.getElementById(target).classList.add('active');
-      });
-    });
-</script>
 
 
 <style>
@@ -223,4 +174,3 @@ heatmap tooltip doesn't move with page scroll, it has position absolute
     }
 </style>
 
--->
