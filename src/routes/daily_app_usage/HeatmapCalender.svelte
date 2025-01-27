@@ -188,9 +188,7 @@
 
 		// Tooltip
 		const tooltip = d3
-			.select('body')
-			.append('div')
-			.attr('class', 'tooltip')
+			.select('#heatmap-tooltip')
 			.style('position', 'absolute')
 			.style('visibility', 'hidden')
 			.style('background', 'rgba(0, 0, 0, 0.8)')
@@ -213,6 +211,7 @@
 <div class="mt-10 flex flex-col justify-center">
     <div id="container" class="flex justify-center">
         <svg id="heatmap"></svg>
+		<div id="heatmap-tooltip" class="tooltip"></div>
     </div>
     
     <div class="controls flex gap-2 justify-center">

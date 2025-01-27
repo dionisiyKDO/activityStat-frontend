@@ -18,7 +18,49 @@
 	--foreground: ;
 }
 
-/* og */
+/* modified base */
+:root {
+	--background: #121212;
+	--card: #1f1f1f;
+	--primary: #646cffff;
+	--primary-foreground: #ffffff;
+	--secondary: #cfd6eaff;
+	--secondary-foreground: #121212;
+	--muted: #2c2c2c;
+	--muted-foreground: #bdbdbd;
+	--accent: #fdcff3ff;
+	--accent-foreground: #121212;
+	--destructive: #cf6679;
+	--destructive-foreground: #121212;
+	--border: #333333;
+	--input: #2a2a2a;
+	--ring: #646cffff;
+	--foreground: #cfd6eaff;
+}
+
+
+/* base dark mode */
+:root {
+	--background: #242424ff;
+	--card: #2e2e2eff;
+	--primary: #646cffff;
+	--primary-foreground: #ffffff;
+	--secondary: #cfd6eaff;
+	--secondary-foreground: #242424ff;
+	--muted: #343434ff;
+	--muted-foreground: #a6a6a6ff;
+	--accent: #fdcff3ff;
+	--accent-foreground: #242424ff;
+	--destructive: #ef6f6cff;
+	--destructive-foreground: #ffffff;
+	--border: #3e3e3eff;
+	--input: #2e2e2eff;
+	--ring: #646cffff;
+	--foreground: #cfd6eaff;
+}
+
+
+/* coffee palette */
 :root {
 	--background: #09090b;
 	--card: #252020;
@@ -39,47 +81,66 @@
 }
 
 
+
 /* modifiyd old */
 :root {
-	--background: #242424ff; /* Eerie Black */
-	--card: #2e2e2eff; /* Slightly lighter Eerie Black for contrast */
-	--primary: #646cffff; /* Neon Blue */
-	--primary-foreground: #ffffff; /* Ensures readability on Neon Blue */
-	--secondary: #cfd6eaff; /* Lavender Web */
-	--secondary-foreground: #242424ff; /* Works well with Lavender Web */
-	--muted: #343434ff; /* A muted Eerie Black */
-	--muted-foreground: #a6a6a6ff; /* A soft gray for subtle elements */
-	--accent: #fdcff3ff; /* Mimi Pink */
-	--accent-foreground: #242424ff; /* High contrast against Mimi Pink */
-	--destructive: #ef6f6cff; /* Light Coral */
-	--destructive-foreground: #ffffff; /* Stands out on Light Coral */
-	--border: #3e3e3eff; /* A subtle border shade derived from Eerie Black */
-	--input: #2e2e2eff; /* Matches card for consistency */
-	--ring: #646cffff; /* Neon Blue for focus/active states */
-	--foreground: #cfd6eaff; /* Lavender Web for text on dark background */
+	--background: #242424ff;
+	--card: #2e2e2eff;
+	--primary: #646cffff;
+	--primary-foreground: #ffffff;
+	--secondary: #cfd6eaff;
+	--secondary-foreground: #242424ff;
+	--muted: #343434ff;
+	--muted-foreground: #a6a6a6ff;
+	--accent: #fdcff3ff;
+	--accent-foreground: #242424ff;
+	--destructive: #ef6f6cff;
+	--destructive-foreground: #ffffff;
+	--border: #3e3e3eff;
+	--input: #2e2e2eff;
+	--ring: #646cffff;
+	--foreground: #cfd6eaff;
 }
+:root { /* slightly darker */
+	--background: #1c1c1cff;
+	--card: #262626ff;
+	--primary: #535affff;
+	--primary-foreground: #e4e4e4ff;
+	--secondary: #b8bfd9ff;
+	--secondary-foreground: #1c1c1cff;
+	--muted: #2a2a2aff;
+	--muted-foreground: #8f8f8fff;
+	--accent: #f9bde4ff;
+	--accent-foreground: #1c1c1cff;
+	--destructive: #d65a5aff;
+	--destructive-foreground: #ffffff;
+	--border: #2a2a2aff;
+	--input: #262626ff;
+	--ring: #535affff;
+	--foreground: #b8bfd9ff;
+}
+
+
+
+
 :root {
-	--background: #1c1c1cff; /* Darker Eerie Black */
-	--card: #262626ff; /* Slightly lighter but still darker Eerie Black */
-	--primary: #535affff; /* Darkened Neon Blue */
-	--primary-foreground: #e4e4e4ff; /* Softer white for readability */
-	--secondary: #b8bfd9ff; /* Darkened Lavender Web */
-	--secondary-foreground: #1c1c1cff; /* High contrast for dark background */
-	--muted: #2a2a2aff; /* Muted dark gray */
-	--muted-foreground: #8f8f8fff; /* A more subdued gray for text */
-	--accent: #f9bde4ff; /* Slightly darker Mimi Pink */
-	--accent-foreground: #1c1c1cff; /* Ensures high contrast */
-	--destructive: #d65a5aff; /* Darkened Light Coral */
-	--destructive-foreground: #ffffff; /* Keeps text legible */
-	--border: #2a2a2aff; /* Dark border shade */
-	--input: #262626ff; /* Matches card for consistency */
-	--ring: #535affff; /* Darkened Neon Blue for focus states */
-	--foreground: #b8bfd9ff; /* Darker Lavender Web for text on dark */
+	--background: #121212;
+	--card: #1f1f1f;
+	--primary: #bb86fc;
+	--primary-foreground: #ffffff;
+	--secondary: #03dac6;
+	--secondary-foreground: #121212;
+	--muted: #2c2c2c;
+	--muted-foreground: #bdbdbd;
+	--accent: #ff8c00;
+	--accent-foreground: #121212;
+	--destructive: #cf6679;
+	--destructive-foreground: #121212;
+	--border: #333333;
+	--input: #2a2a2a;
+	--ring: #03dac6;
+	--foreground: #e0e0e0;
 }
-
-
-
-
 :root {
 	--background: #121212;
 	--card: #1f1f1f;

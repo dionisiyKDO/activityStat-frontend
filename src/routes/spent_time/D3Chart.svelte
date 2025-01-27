@@ -90,23 +90,22 @@
                     .attr("cursor", "default");
             });
         
-        const tooltip = d3.select("body")
-            .append("div")
-            .attr("class", "tooltip")
-                .style("position", "absolute")
-                .style("background-color", "#1a1a1a")
-                .style("border", "solid 1px #646cff")
-                .style("color", "rgba(255, 255, 255, 0.87)")
-                .style("padding", "5px")
-                .style("border-radius", "2px")
-                .style("opacity", 0)
-                .style("pointer-events", "none"); // Prevent the tooltip from interfering with mouse events
+        const tooltip = d3.select("#bar-tooltip")
+            .style("position", "absolute")
+            .style("background-color", "#1a1a1a")
+            .style("border", "solid 1px #646cff")
+            .style("color", "rgba(255, 255, 255, 0.87)")
+            .style("padding", "5px")
+            .style("border-radius", "2px")
+            .style("opacity", 0)
+            .style("pointer-events", "none"); // Prevent the tooltip from interfering with mouse events
     });
 </script>
 
 
 <div id="chart-container">
     <svg id="spent-time-chart"></svg>
+    <div id="bar-tooltip" class="tooltip"></div>
 </div>
 
 

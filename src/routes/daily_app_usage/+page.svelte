@@ -82,28 +82,6 @@
 	function clearSelecteAppsList() { list = []; }
 	const removeSelected = (app: App) => { list = list.filter((f) => f.title !== app.title); };
 	const selectPreset = (apps: App[]) => { list = apps; };
-	
-	
-	
-	// Tab Logic
-    // const tabTriggers = document.querySelectorAll('.tab-trigger');
-    // const tabContents = document.querySelectorAll('.tab-content');
-
-    // tabTriggers.forEach(trigger => {
-    //   trigger.addEventListener('click', () => {
-    //     const target = trigger.getAttribute('data-target');
-
-    //     // Remove active class from all triggers and contents
-    //     tabTriggers.forEach(t => t.classList.remove('active'));
-    //     tabContents.forEach(c => c.classList.remove('active'));
-
-    //     // Add active class to the clicked trigger and corresponding content
-    //     trigger.classList.add('active');
-    //     document.getElementById(target).classList.add('active');
-    //   });
-    // });
-
-
 </script> 
 
 
@@ -119,16 +97,18 @@ add legend to line chart to disable some lines
 -->
 
 <div class="flex flex-col gap-4 p-6">
-	<h1 class="text-3xl font-bold text-[--secondary]">App Usage Analytics</h1>
+	<h1 class="text-3xl font-bold text-[--primary-text]">App Usage Analytics</h1>
 
 	<!-- Controls -->
-	<div class="preview-container">
+	<div class="surface flex flex-col gap-2">
+
 		<!-- Presets -->
 		<div class="flex gap-2">
 			<button class="button" onclick={() => selectPreset(preset_hoyo)}>Gi/HSR/ZZZ</button>
 			<button class="button" onclick={() => selectPreset(preset_gacha)}>Gacha</button>
 		</div>
 		<div class="border-b border-solid border-[--border] pb-4"></div>
+
 		<!-- Multiselect -->
 		<div class="flex gap-2 pt-4">
 			{#await appListReq}
@@ -146,6 +126,7 @@ add legend to line chart to disable some lines
 				<p class="error">{error.message}</p>
 			{/await}
 		</div>
+
 		<!-- Chips -->
 		<div class="flex flex-wrap gap-2 mx-2 my-1">
 			{#each list as app}
@@ -155,7 +136,7 @@ add legend to line chart to disable some lines
 	</div>
 
 	<!-- Charts -->
-	<div class="preview-container">
+	<div class="surface">
 		{#await appUsageDataReq}
 			<p class="loading">Loading data...</p>
 		{:then data} 
@@ -168,64 +149,5 @@ add legend to line chart to disable some lines
 
 </div> 
 
-
 <style>
-	/* Tabs Container */
-    .tabs {
-      width: 100%;
-      font-family: Arial, sans-serif;
-    }
-
-    /* Tab List */
-    .tab-list {
-      display: flex;
-      background-color: #4A3B32;
-      border: 1px solid #8B6D5C;
-      border-radius: 4px 4px 0 0;
-    }
-
-    /* Tab Buttons */
-    .tab-trigger {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      cursor: pointer;
-      color: #CEB8A2;
-      background-color: transparent;
-      border: none;
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    .tab-trigger.active {
-      background-color: #8B6D5C;
-      color: #E6D5C3;
-    }
-
-    .tab-trigger:hover {
-      background-color: #8B6D5C;
-      color: #E6D5C3;
-    }
-
-    /* Tab Content */
-    .tab-content {
-      display: none;
-      padding: 16px 0;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    /* Placeholder Styles */
-    .placeholder {
-      width: 100%;
-      height: 400px;
-      background-color: #4A3B32;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #CEB8A2;
-    }
 </style>
-

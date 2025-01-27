@@ -149,7 +149,7 @@
         highlightedIndex = -1;
     }}
     onkeydown={handleKeyDown}
-    class="input"
+    class="input w-full"
 />
 {#if isDropdownOpen}
     <ul
