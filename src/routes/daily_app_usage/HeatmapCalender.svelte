@@ -216,7 +216,7 @@
     
     <div class="controls flex gap-2 justify-center">
         {#each Object.keys(datasets!) as year}
-            <button onclick={() => switchYear(year)}>
+            <button class="button" onclick={() => switchYear(year)}>
                 {year}
             </button>
         {/each}

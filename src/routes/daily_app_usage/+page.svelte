@@ -11,56 +11,64 @@
     import Chip from './Chip.svelte';
 
 	// Presets
-	const preset_hoyo: App[] = [
-		{ app: 'GenshinImpact.exe', title: 'Genshin Impact' },
-		{ app: 'StarRail.exe', title: 'Honkai Star Rail' },
-		{ app: 'ZenlessZoneZero.exe', title: 'ZenlessZoneZero' }
-	];
-	const preset_gacha: App[] = [
-			{
-				"app": "GenshinImpact.exe",
-				"title": "Genshin Impact"
-			},
-			{
-				"app": "StarRail.exe",
-				"title": "Honkai Star Rail"
-			},
-			{
-				"app": "ZenlessZoneZero.exe",
-				"title": "ZenlessZoneZero"
-			},
-			{
-				"app": "StarRail.exe",
-				"title": "Honkai: Star Rail"
-			},
-			{
-				"app": "dnplayer.exe",
-				"title": "LDPlayer"
-			},
-			{
-				"app": "reverse1999.exe",
-				"title": "Reverse 1999"
-			},
-			{
-				"app": "Client-Win64-Shipping.exe",
-				"title": "Wuthering Waves"
-			},
-			{
-				"app": "nikke.exe",
-				"title": "Goddess of Victory: Nikke"
-			},
-			{
-				"app": "ZenlessZoneZero.exe",
-				"title": "Zenless Zone Zero"
-			},
-			{
-				"app": "X6Game-Win64-Shipping.exe",
-				"title": "Infinity Nikki"
-			},
-			{
-				"app": "GF2_Exilium.exe",
-				"title": "GF2 Exilium"
-			}
+	const presets = [
+		{
+			"name": "Gi/HSR/ZZZ",	
+			"preset": [
+				{ app: 'GenshinImpact.exe', title: 'Genshin Impact' },
+				{ app: 'StarRail.exe', title: 'Honkai Star Rail' },
+				{ app: 'ZenlessZoneZero.exe', title: 'ZenlessZoneZero' }
+			],
+		},
+		{
+			"name": "Gacha",
+			"preset": [
+				{
+					"app": "GenshinImpact.exe",
+					"title": "Genshin Impact"
+				},
+				{
+					"app": "StarRail.exe",
+					"title": "Honkai Star Rail"
+				},
+				{
+					"app": "ZenlessZoneZero.exe",
+					"title": "ZenlessZoneZero"
+				},
+				{
+					"app": "StarRail.exe",
+					"title": "Honkai: Star Rail"
+				},
+				{
+					"app": "dnplayer.exe",
+					"title": "LDPlayer"
+				},
+				{
+					"app": "reverse1999.exe",
+					"title": "Reverse 1999"
+				},
+				{
+					"app": "Client-Win64-Shipping.exe",
+					"title": "Wuthering Waves"
+				},
+				{
+					"app": "nikke.exe",
+					"title": "Goddess of Victory: Nikke"
+				},
+				{
+					"app": "ZenlessZoneZero.exe",
+					"title": "Zenless Zone Zero"
+				},
+				{
+					"app": "X6Game-Win64-Shipping.exe",
+					"title": "Infinity Nikki"
+				},
+				{
+					"app": "GF2_Exilium.exe",
+					"title": "GF2 Exilium"
+				}
+			],
+		},
 	];
 
 	// Default apps
@@ -90,29 +98,33 @@ on chart titles on tooltip instead of exe
 
 check calc duration on heatmap for multiple lines. 
 	on day 24-07-06 for preset 'gacha', duration is 26.5 hours
+also on gacha preset there is line that goes acros the bottom of the chart
 
 heatmap tooltip doesn't move with page scroll, it has position absolute
 add legend to line chart to disable some lines
 	add button to disable/enable ALL lines
 -->
 
-<div class="flex flex-col gap-4 p-6">
-	<h1 class="text-3xl font-bold text-[--primary-text]">App Usage Analytics</h1>
+<!-- Container -->
+<div class="flex flex-col gap-4 mt-4">
+	<h1 class=" text-[--primary-text] text-3xl font-bold">App Usage Analytics</h1>
 
 	<!-- Controls -->
-	<div class="surface flex flex-col gap-2">
+	<div class="surface flex flex-col gap-4 p-6">
 
 		<!-- Presets -->
-		<div class="flex gap-2">
-			<button class="button" onclick={() => selectPreset(preset_hoyo)}>Gi/HSR/ZZZ</button>
-			<button class="button" onclick={() => selectPreset(preset_gacha)}>Gacha</button>
+		<div class="flex gap-2 border-[--border] border-b border-solid pb-4">
+			{#each presets as preset, index}
+				<button class="button" onclick={() => selectPreset(preset["preset"])}>{preset["name"]}</button>
+			{/each}
 		</div>
-		<div class="border-b border-solid border-[--border] pb-4"></div>
 
 		<!-- Multiselect -->
-		<div class="flex gap-2 pt-4">
+		<div class="flex gap-2">
 			{#await appListReq}
-				<p class="loading">Loading app list...</p>
+				<div class="flex justify-center items-center text-4xl p-6">
+					<p class="loading">Loading app list...</p>
+				</div>
 			{:then app_list}
 				<div class="preview grow relative">
 					<MultiSelect {app_list} bind:selectedApps={list}/>
@@ -128,7 +140,7 @@ add legend to line chart to disable some lines
 		</div>
 
 		<!-- Chips -->
-		<div class="flex flex-wrap gap-2 mx-2 my-1">
+		<div class="flex flex-wrap gap-2">
 			{#each list as app}
 				<Chip {app} onRemove={() => removeSelected(app)} />
 			{/each}
@@ -138,7 +150,9 @@ add legend to line chart to disable some lines
 	<!-- Charts -->
 	<div class="surface">
 		{#await appUsageDataReq}
-			<p class="loading">Loading data...</p>
+			<div class="flex justify-center items-center text-4xl p-6">
+				<p class="loading">Loading app data...</p>
+			</div>
 		{:then data} 
 			<D3Chart {data} />
 			<HeatmapCalender {data} />

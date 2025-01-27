@@ -9,7 +9,7 @@
 
 	color-scheme: light dark;
 	color: rgba(255, 255, 255, 0.87);
-	background-color: #242424;
+	background-color: var(--background);
 
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
@@ -35,19 +35,19 @@
 
 	/* Primary Colors */
 	--primary: #646cffff;
-	--primary-hover: #535acb; /* Optional: Add a hover state for primary */
+	--primary-hover: #535acb;
 
 	/* Secondary Colors */
 	--secondary: #cfd6eaff;
-	--secondary-hover: #a8b1d1; /* Optional: Add a hover state for secondary */
-
+	--secondary-hover: #a8b1d1;
+	
 	/* Accent Colors */
 	--accent: #fdcff3ff;
-	--accent-hover: #f5a8e2; /* Optional: Add a hover state for accent */
+	--accent-hover: #f5a8e2;
 
 	/* Destructive Colors */
 	--destructive: #cf6679;
-	--destructive-hover: #b84d5f; /* Optional: Add a hover state for destructive */
+	--destructive-hover: #b84d5f;
 
 	/* Border Colors */
 	--border: #333333;
