@@ -2,7 +2,7 @@
 </script>
 
 
-<header class="mb-6 flex justify-between border-b-2 border-solid border-gray-400 p-4">
+<header class="flex justify-between border-b-2 border-solid border-gray-400 p-4">
 	<h1 class="text-3xl font-bold">Activity stat</h1>
 	<nav class="flex items-center">
 		<ul class="flex list-none gap-4">

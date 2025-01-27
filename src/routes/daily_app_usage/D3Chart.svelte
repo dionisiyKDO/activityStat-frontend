@@ -621,8 +621,8 @@
 				// Reset xScale_brush and main chart
 				xScale_brush.domain(fullExtent);
 
-				start_date_label = fullExtent[0];
-				end_date_label = fullExtent[1];
+				start_date_label = new Date(fullExtent[0]).toISOString().split('T')[0];
+				end_date_label = new Date(fullExtent[1]).toISOString().split('T')[0];
 				updateChart(fullExtent[0], fullExtent[1]);
 
 				// Clear brush selection

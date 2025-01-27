@@ -9,13 +9,79 @@
 
 	color-scheme: light dark;
 	color: rgba(255, 255, 255, 0.87);
-	background-color: #242424;
+	/* background-color: #242424; */
 
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
+
+@layer components {
+	.preview-container {
+		@apply 
+		rounded-lg border border-solid border-[--border] 
+		bg-[--card]
+		flex flex-col gap-2
+		p-4
+		min-h-40;
+	}
+
+    .preview {
+        @apply 
+		rounded-lg border border-solid border-[--border] 
+		bg-[--card] 
+		px-3 py-1;
+    }
+	.preview-chip {
+        @apply 
+		rounded-2xl 
+		bg-[--secondary] 
+		text-[--secondary-foreground] text-sm 
+		p-0 px-3 ;
+    }
+
+}
+
+:root{
+	/* Rich espresso base */
+	--background: #1e1917;
+
+	/* Mocha surface */
+	/* --card: #252020; */
+	--card: #272323;
+
+	/* Caramel accent */
+	--primary: #d4a373;
+	--primary-foreground: #1e1917;
+
+	/* Coffee crema secondary */
+	--secondary: #8b6d5c;
+	--secondary-foreground: #e6d5c3;
+
+	/* Roasted coffee muted */
+	--muted: #4a3b32;
+	--muted-foreground: #ceb8a2;
+
+	/* Latte accent */
+	--accent: #b68f65;
+	--accent-foreground: #1e1917;
+
+	/* Dark roast destructive */
+	--destructive: #8b4b3b;
+	--destructive-foreground: #e6d5c3;
+
+	/* Coffee bean border */
+	--border: #4a3b32;
+
+	/* Form elements */
+	--input: #252020;
+	--ring: #d4a373;
+
+	/* Base text color - warm cream */
+	--foreground: #e6d5c3;
+}
+
 
 body {
 	margin: 0;

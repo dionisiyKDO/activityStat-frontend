@@ -7,7 +7,8 @@
 </script>
 
 
-<div class="flex flex-col h-screen">
+<!-- TODO: revise tailwind classes, padding and margins especially-->
+<div class="flex flex-col min-h-screen">
 	<Header />
 
 	<main class="flex-1 flex mx-auto w-full flex-col p-4 max-w-7xl">
