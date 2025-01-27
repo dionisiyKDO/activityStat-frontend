@@ -17,7 +17,7 @@
 			"preset": [
 				{ app: 'GenshinImpact.exe', title: 'Genshin Impact' },
 				{ app: 'StarRail.exe', title: 'Honkai Star Rail' },
-				{ app: 'ZenlessZoneZero.exe', title: 'ZenlessZoneZero' }
+				{ app: 'ZenlessZoneZero.exe', title: 'Zenless Zone Zero' }
 			],
 		},
 		{
@@ -72,10 +72,7 @@
 	];
 
 	// Default apps
-	const app1: App = { app: 'GenshinImpact.exe', title: 'Genshin Impact' };
-	const app2: App = { app: 'StarRail.exe', title: 'Honkai Star Rail' };
-	const app3: App = { app: 'ZenlessZoneZero.exe', title: 'ZenlessZoneZero' };
-	let list: App[] = $state([app1, app2, app3]);
+	let list: App[] = $state(presets[0]["preset"]);
 	
 	let appUsageDataReq: Promise<AppUsageData[] | null> | null = $state(null);
 	let appListReq: Promise<App[] | null> | null = $state(null);
@@ -100,6 +97,8 @@ check calc duration on heatmap for multiple lines.
 	on day 24-07-06 for preset 'gacha', duration is 26.5 hours
 also on gacha preset there is line that goes acros the bottom of the chart
 
+line chart on big zoom shows only the months, without not days
+
 heatmap tooltip doesn't move with page scroll, it has position absolute
 add legend to line chart to disable some lines
 	add button to disable/enable ALL lines
@@ -114,6 +113,7 @@ add legend to line chart to disable some lines
 
 		<!-- Presets -->
 		<div class="flex gap-2 border-[--border] border-b border-solid pb-4">
+			<div class="pr-2 border-r border-solid border-[--border]"><button class="button" onclick={clearSelecteAppsList}>Clear Data</button></div>
 			{#each presets as preset, index}
 				<button class="button" onclick={() => selectPreset(preset["preset"])}>{preset["name"]}</button>
 			{/each}
@@ -122,18 +122,15 @@ add legend to line chart to disable some lines
 		<!-- Multiselect -->
 		<div class="flex gap-2">
 			{#await appListReq}
-				<div class="flex justify-center items-center text-4xl p-6">
+				<div class="flex justify-center w-full items-center text-1xl p-2">
 					<p class="loading">Loading app list...</p>
 				</div>
 			{:then app_list}
+				<button class="button" onclick={getData}>Get Data</button>
 				<div class="preview grow relative">
 					<MultiSelect {app_list} bind:selectedApps={list}/>
 				</div>
 			
-				<div class="">
-					<button class="button" onclick={getData}>Get Data</button>
-					<button class="button" onclick={clearSelecteAppsList}>Clear Data</button>
-				</div>
 			{:catch error}
 				<p class="error">{error.message}</p>
 			{/await}
