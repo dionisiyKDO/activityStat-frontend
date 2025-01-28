@@ -83,15 +83,10 @@
 
 
 <!-- TODO:
-on chart titles on tooltip instead of exe
-
 check calc duration on heatmap for multiple lines. 
 	on day 24-07-06 for preset 'gacha', duration is 26.5 hours
 also on gacha preset there is line that goes acros the bottom of the chart
 
-line chart on big zoom shows only the months, without not days
-
-heatmap tooltip doesn't move with page scroll, it has position absolute
 add legend to line chart to disable some lines
 	add button to disable/enable ALL lines
 -->

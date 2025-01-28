@@ -102,13 +102,16 @@
 			.style('font-size', '14px')
 			.call(
 				d3.axisBottom(xScale)
-					.ticks(10) // better? // TODO: play with ticks
-					// .tickValues(xScale.ticks(d3.timeMonth.every(2)))  // old way to manage ticks
-					.tickFormat(d3.timeFormat('%b %Y'))  // Custom tick format: "Jan 2023"
+					.ticks(d3.timeMonth.every(3))
+					.tickFormat(d3.timeFormat('%b %Y'))
 			)
-			.call((g: any) => g.select('.domain').remove())
-			.selectAll('.tick line')
-			.style('stroke-opacity', 0);
+			.call((g: any) => {
+				g.select('.domain').remove();
+				g.selectAll('.tick line').style('stroke-opacity', 0);
+				g.selectAll('.tick text')
+					.style('fill', '#777')
+					.style('font-size', '14px');
+			});
 
 		// Draw the y-axis
 		let yAxis = svg
@@ -116,17 +119,18 @@
 			.attr('class', 'y-axis')
 			.style('font-size', '14px')
 			.call(d3.axisLeft(yScale))
-			.call((g: any) => g.select('.domain').remove())
-			.selectAll('.tick line')
-			.style('stroke-opacity', 0);
-
-		// Style tick text
-		svg.selectAll('.tick text').style('fill', '#777');
+			.call((g: any) => {
+				g.select('.domain').remove();
+				g.selectAll('.tick line').style('stroke-opacity', 0);
+				g.selectAll('.tick text')
+					.style('fill', '#777')
+					.style('font-size', '14px');
+			});
 
 		// Draw x-grid lines.
 		const xGrid = svg
 			.selectAll('xGrid')
-			.data(xScale.ticks().slice(1, -1)) // Remove the first and last tick to prevent overlap
+			.data(xScale.ticks(d3.timeMonth.every(1))) // Remove the first and last tick to prevent overlap
 			.join(
 				(enter: any) =>
 					enter
@@ -236,13 +240,14 @@
 		const tooltip = d3
 			.select('#tooltip')
 			.style('opacity', 0)
-			.style('position', 'absolute')
+			.style('position', 'fixed')
+			.style('white-space', 'nowrap')
 			.style('z-index', '10')
 			.style('pointer-events', 'none')
 			.style('background-color', '#1a1a1a')
 			.style('border', 'solid 1px #646cff')
 			.style('color', 'rgba(255, 255, 255, 0.87)')
-			.style('padding', '5px')
+			.style('padding', '7px')
 			.style('border-radius', '2px')
 			.style('box-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
 
@@ -280,7 +285,7 @@
 			if (points.length === 0) return; // additional check
 
 			// Tooltip positioning
-			const tooltipWidth = tooltip.node()?.offsetWidth || 0;
+			const tooltipWidth = tooltip.node()?.offsetWidth + 20 || 0; // 20 for browser scrollbar width
 			const tooltipHeight = tooltip.node()?.offsetHeight || 0;
 			let tooltipLeft = mouseX + 20;
 			let tooltipTop = mouseY - 40;
@@ -358,43 +363,94 @@
 			const newDomain: [Date, Date] = [new Date(start), new Date(end)];
 			xScale.domain(newDomain);
 
-			// Calculate an appropriate tick interval based on the date range
-			// TODO: play with tick intervals
+			// Calculate date range in different units for more precise tick handling
 			const dateRangeInDays = d3.timeDay.count(xScale.domain()[0], xScale.domain()[1]);
+			const dateRangeInHours = dateRangeInDays * 24;
+			const width = xScale.range()[1] - xScale.range()[0];
+			
+			// Target roughly one tick per 100 pixels for optimal readability
+			const targetTickCount = Math.max(2, Math.floor(width / 100));
+			
+			// Determine optimal tick interval and format
+			let gridInterval;
 			let tickInterval;
+			let tickFormat;
+			
 			if (dateRangeInDays > 365 * 5) {
-				tickInterval = d3.timeYear.every(1);
+				// More than 5 years
+				gridInterval = d3.timeMonth.every(3);
+				tickInterval = d3.timeYear.every(Math.ceil(dateRangeInDays / (365 * targetTickCount)));
+				tickFormat = d3.timeFormat('%Y');
 			} else if (dateRangeInDays > 365 * 2) {
-				tickInterval = d3.timeMonth.every(6);
-			} else if (dateRangeInDays > 365) {
+				// 2-5 years
+				gridInterval = d3.timeMonth.every(1);
 				tickInterval = d3.timeMonth.every(2);
+				tickFormat = d3.timeFormat("%b '%y");
+			} else if (dateRangeInDays > 365) {
+				// 1-2 years
+				gridInterval = d3.timeMonth.every(1);
+				tickInterval = d3.timeMonth.every(2);
+				tickFormat = d3.timeFormat("%b %Y");
 			} else if (dateRangeInDays > 180) {
+				// 6 months - 1 year
+				gridInterval = d3.timeWeek.every(2);
 				tickInterval = d3.timeMonth.every(1);
+				tickFormat = d3.timeFormat('%b %Y');
 			} else if (dateRangeInDays > 90) {
+				// 3-6 months
+				gridInterval = d3.timeWeek.every(1);
 				tickInterval = d3.timeWeek.every(2);
+				tickFormat = d3.timeFormat('Week %V');
 			} else if (dateRangeInDays > 30) {
+				// 1-3 months
+				gridInterval = d3.timeWeek.every(1);
 				tickInterval = d3.timeWeek.every(1);
-			} else if (dateRangeInDays > 10) {
-				tickInterval = d3.timeDay.every(2);
+				tickFormat = d3.timeFormat('%d %b');
+			} else if (dateRangeInDays > 7) {
+				// 1-4 weeks
+				gridInterval = d3.timeDay.every(Math.ceil(dateRangeInDays / targetTickCount));
+				tickInterval = d3.timeDay.every(Math.ceil(dateRangeInDays / targetTickCount));
+				tickFormat = d3.timeFormat('%d %b');
 			} else {
+				// 1-7 days
+				gridInterval = d3.timeDay.every(1);
 				tickInterval = d3.timeDay.every(1);
+				tickFormat = d3.timeFormat('%a %d');
 			}
 
-  			// Update the x-axis with new ticks
-			svg
+			// Update the x-axis with new ticks
+			const xAxis = svg
 				.select('.x-axis')
-				.call(d3.axisBottom(xScale)
-						.tickValues(xScale.ticks(tickInterval))
-						.tickFormat(d3.timeFormat('%b %Y'))
+				.call(
+					d3.axisBottom(xScale)
+						.ticks(tickInterval)
+						.tickFormat(tickFormat)
 				)
-				.call((g: any) => g.select('.domain').remove())
-				.selectAll('.tick line')
-				.style('stroke-opacity', 0);
-			
-  			// Update x-grid lines
-			svg
-				.selectAll('.x-grid')
-				.data(xScale.ticks())
+				.call((g: any) => {
+					g.select('.domain').remove();
+					g.selectAll('.tick line').style('stroke-opacity', 0);
+					
+					// Rotate labels if they're too dense
+					// const ticks = g.selectAll('.tick text');
+					// const tickCount = ticks.size();
+					// if (width / tickCount < 80) {
+					// 	ticks
+					// 		.attr('transform', 'rotate(-45)')
+					// 		.style('text-anchor', 'end')
+					// 		.attr('dx', '-0.8em')
+					// 		.attr('dy', '0.15em');
+					// } else {
+					// 	ticks
+					// 		.attr('transform', null)
+					// 		.style('text-anchor', 'middle')
+					// 		.attr('dx', null)
+					// 		.attr('dy', '0.71em');
+					// }
+				});
+
+			// Update x-grid lines with the same tick interval
+			svg.selectAll('.x-grid')
+				.data(xScale.ticks(gridInterval))
 				.join(
 					(enter: any) =>
 						enter
@@ -404,7 +460,9 @@
 							.attr('y2', height)
 							.attr('stroke', '#e0e0e0')
 							.attr('stroke-width', 0.5)
-							.attr('stroke-opacity', 0.33),
+							.attr('stroke-opacity', 0.33)
+							.attr('x1', (d: any) => xScale(d))
+							.attr('x2', (d: any) => xScale(d)),
 					(update: any) =>
 						update
 							.transition()
@@ -431,8 +489,7 @@
 							.attr('stroke-width', 1.5)
 							.attr('clip-path', 'url(#clip)')
 							.attr('d', (d: any) =>
-								d3
-									.line()
+								d3.line()
 									.x((d: any) => xScale(new Date(d.timestamp)))
 									.y((d: any) => yScale(+d.duration))(d[1])
 							),
@@ -442,8 +499,7 @@
 							.duration(animDuration)
 							.attr('clip-path', 'url(#clip)')
 							.attr('d', (d: any) =>
-								d3
-									.line()
+								d3.line()
 									.x((d: any) => xScale(new Date(d.timestamp)))
 									.y((d: any) => yScale(+d.duration))(d[1])
 							),

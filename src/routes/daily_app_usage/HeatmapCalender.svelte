@@ -132,7 +132,7 @@
 			d3.select(this).attr('stroke', cellStrokeColorFocus).attr('stroke-width', 2);
 				
 			// Tooltip positioning
-			const tooltipWidth = tooltip.node()?.offsetWidth || 0;
+			const tooltipWidth = tooltip.node()?.offsetWidth + 20 || 0; // 20 for browser scrollbar width
 			const tooltipHeight = tooltip.node()?.offsetHeight || 0;
 			let tooltipLeft = event.clientX + 10;
 			let tooltipTop = event.clientY - 30;
@@ -189,12 +189,15 @@
 		// Tooltip
 		const tooltip = d3
 			.select('#heatmap-tooltip')
-			.style('position', 'absolute')
+			.style('position', 'fixed')
+			.style('white-space', 'nowrap')
+			.style('z-index', '10')
 			.style('visibility', 'hidden')
 			.style('background', 'rgba(0, 0, 0, 0.8)')
 			.style('color', '#fff')
 			.style('padding', '8px 12px')
-			.style('border-radius', '4px')
+			.style('border', 'solid 1px #646cff')
+			.style('border-radius', '6px')
 			.style('font-size', '12px')
 			.style('pointer-events', 'none');
 	}
