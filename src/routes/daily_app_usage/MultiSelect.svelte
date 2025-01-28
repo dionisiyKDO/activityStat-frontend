@@ -54,7 +54,7 @@
 
     function clickOutside(node: HTMLElement) {
         const handleClick = (event: MouseEvent) => {
-            if (node && !node.contains(event.target as Node) && !dropdownRef!.contains(event.target as Node)) {
+            if (node && !node.contains(event.target as Node) && !dropdownRef?.contains(event.target as Node)) {
                 isDropdownOpen = false;
             }
         };

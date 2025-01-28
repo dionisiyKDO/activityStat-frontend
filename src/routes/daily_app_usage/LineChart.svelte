@@ -2,10 +2,10 @@
 	// @ts-ignore: Ignore TS errors for d3 library
 	import * as d3 from 'd3';
 	import { onMount } from 'svelte';
-	import { type AppUsageData, type margin } from './load';
+	import { type AppUsageData, type App, type margin} from './load';
 
 	// #region Data Preparation
-	let { data }: { data: AppUsageData[] | null } = $props();
+	let { data, app_list }: { data: AppUsageData[] | null; app_list: App[] | null } = $props();
 	let filteredData = $derived(
 		data?.filter((d: any) => {
 			return d.date >= new Date(start_date) && d.date <= new Date(end_date);
@@ -265,8 +265,11 @@
 			const points = Array.from(sumstat, ([key, values]) => {
 				const closest = d3.least(values, (d: any) => Math.abs(xScale(d.date) - mouseXsvg));
 				if (!closest) return null; // Handle empty data
+				const closestApp = app_list!.find((app: App) => app.app === key); // find title for the app
+				
 				return {
 					app: key,
+					title: closestApp!.title,
 					date: closest.date,
 					duration: closest.duration,
 					x: xScale(closest.date),
@@ -296,7 +299,7 @@
                 <hr> 
 				${points.map((p: any) => `
 					<div>
-                        <strong style="color:${p.color}"> ${p.app} </strong> <br>
+                        <strong style="color:${p.color}"> ${p.title} </strong> <br>
                         Duration: ${p?.duration === maxDuration
 							? `<strong style="color: white">${p.duration} Hours</strong>` // if it's the max duration, highlight it
 							: `${p.duration} Hours`}
