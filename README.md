@@ -13,7 +13,7 @@ Built with:
 ## Setup
 1. Clone this repository:
 ```bash
-git clone https://github.com/dionisiyKDO/activityStat-frontend.git
+git clone https://github.com/dionisiyKDO/activityStat-frontend
 ```
 
 2. Install dependencies:
