@@ -1,8 +1,11 @@
 <script lang="ts">
 	// @ts-ignore: Ignore TS errors for d3 library
 	import * as d3 from 'd3';
-	import { onMount } from 'svelte';
-	import { type AppUsageData, type App, type margin} from './load';
+	import { type AppUsageData, type App, type margin } from './load';
+
+	// TODO: connect bind:this isntead of selecting by id
+    let chartsvg: SVGSVGElement;
+    let chartContainer: HTMLElement;
 
 	// #region Data Preparation
 	let { data, app_list }: { data: AppUsageData[] | null; app_list: App[] | null } = $props();
@@ -14,15 +17,31 @@
 
 	// d3.extent(data, (d: any) => d.date) 	- ['1999-01-01T00:00:00.000Z', '2050-01-01T00:00:00.000Z']
 	// .toISOString().split('T') 			- ['1999-01-01', '0:00:00.000Z']
-	const start_date = d3.extent(data, (d: any) => d.date)[0].toISOString().split('T')[0];
-	const end_date = d3.extent(data, (d: any) => d.date)[1].toISOString().split('T')[0];
-	
-	let start_date_label = $state(d3.extent(data, (d: any) => d.date)[0].toISOString().split('T')[0]);
-	let end_date_label = $state(d3.extent(data, (d: any) => d.date)[1].toISOString().split('T')[0]);
+	const start_date = d3
+		.extent(data, (d: any) => d.date)[0]
+		.toISOString()
+		.split('T')[0];
+	const end_date = d3
+		.extent(data, (d: any) => d.date)[1]
+		.toISOString()
+		.split('T')[0];
+
+	let start_date_label = $state(
+		d3
+			.extent(data, (d: any) => d.date)[0]
+			.toISOString()
+			.split('T')[0]
+	);
+	let end_date_label = $state(
+		d3
+			.extent(data, (d: any) => d.date)[1]
+			.toISOString()
+			.split('T')[0]
+	);
 
 	let animDuration = 0; // better keep it zero for performance
 	// #endregion
-	
+
 	$effect(() => {
 		drawChart();
 	});
@@ -30,7 +49,7 @@
 	// TODO: tooltip out of bounds fix
 	function drawChart() {
 		// #region Main chart
-		d3.select('#chart').selectAll('*').remove();
+		d3.select(chartsvg).selectAll('*').remove();
 
 		// Chart container dimensions and margins
 		const container = d3.select('#container');
@@ -43,7 +62,7 @@
 
 		// #region SVG Initialization
 		let svg = d3
-			.select('#chart')
+			.select(chartsvg)
 			.attr(
 				'viewBox',
 				`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`
@@ -100,17 +119,11 @@
 			.attr('class', 'x-axis')
 			.attr('transform', `translate(0,${height})`)
 			.style('font-size', '14px')
-			.call(
-				d3.axisBottom(xScale)
-					.ticks(d3.timeMonth.every(3))
-					.tickFormat(d3.timeFormat('%b %Y'))
-			)
+			.call(d3.axisBottom(xScale).ticks(d3.timeMonth.every(3)).tickFormat(d3.timeFormat('%b %Y')))
 			.call((g: any) => {
 				g.select('.domain').remove();
 				g.selectAll('.tick line').style('stroke-opacity', 0);
-				g.selectAll('.tick text')
-					.style('fill', '#777')
-					.style('font-size', '14px');
+				g.selectAll('.tick text').style('fill', '#777').style('font-size', '14px');
 			});
 
 		// Draw the y-axis
@@ -122,15 +135,13 @@
 			.call((g: any) => {
 				g.select('.domain').remove();
 				g.selectAll('.tick line').style('stroke-opacity', 0);
-				g.selectAll('.tick text')
-					.style('fill', '#777')
-					.style('font-size', '14px');
+				g.selectAll('.tick text').style('fill', '#777').style('font-size', '14px');
 			});
 
 		// Draw x-grid lines.
 		const xGrid = svg
 			.selectAll('xGrid')
-			.data(xScale.ticks(d3.timeMonth.every(1))) // Remove the first and last tick to prevent overlap
+			.data(xScale.ticks(d3.timeMonth.every(1)))
 			.join(
 				(enter: any) =>
 					enter
@@ -235,7 +246,7 @@
 			.attr('stroke', '#fff')
 			.attr('stroke-width', 1)
 			.attr('opacity', 0);
-			
+
 		// Set up the tooltip container
 		const tooltip = d3
 			.select('#tooltip')
@@ -271,7 +282,7 @@
 				const closest = d3.least(values, (d: any) => Math.abs(xScale(d.date) - mouseXsvg));
 				if (!closest) return null; // Handle empty data
 				const closestApp = app_list!.find((app: App) => app.app === key); // find title for the app
-				
+
 				return {
 					app: key,
 					title: closestApp!.title,
@@ -302,13 +313,19 @@
 			const tooltipContent = `
                 <div><strong>Date:</strong> ${d3.timeFormat('%b %d, %Y')(points[0]?.date)}</div>
                 <hr> 
-				${points.map((p: any) => `
+				${points
+					.map(
+						(p: any) => `
 					<div>
                         <strong style="color:${p.color}"> ${p.title} </strong> <br>
-                        Duration: ${p?.duration === maxDuration
-							? `<strong style="color: white">${p.duration} Hours</strong>` // if it's the max duration, highlight it
-							: `${p.duration} Hours`}
-                    </div>`).join('')}`;
+                        Duration: ${
+													p?.duration === maxDuration
+														? `<strong style="color: white">${p.duration} Hours</strong>` // if it's the max duration, highlight it
+														: `${p.duration} Hours`
+												}
+                    </div>`
+					)
+					.join('')}`;
 			tooltip.html(tooltipContent);
 
 			// Update the tooltip line position
@@ -321,7 +338,7 @@
 				.attr('opacity', 0.2);
 
 			// Add or update circles at the data points
-			const circles = svg.selectAll('.tooltip-circle').data(points, ((d: any) => d.app));
+			const circles = svg.selectAll('.tooltip-circle').data(points, (d: any) => d.app);
 			circles.exit().remove(); // Remove unneeded circles
 
 			circles
@@ -348,8 +365,7 @@
 			tooltipLine.attr('opacity', 0); // Hide tooltip line
 			svg.selectAll('.tooltip-circle').remove(); // Remove circles
 		}
-		
-		
+
 		// #endregion
 
 		// #region Update chart on brush selection
@@ -367,15 +383,15 @@
 			const dateRangeInDays = d3.timeDay.count(xScale.domain()[0], xScale.domain()[1]);
 			const dateRangeInHours = dateRangeInDays * 24;
 			const width = xScale.range()[1] - xScale.range()[0];
-			
+
 			// Target roughly one tick per 100 pixels for optimal readability
 			const targetTickCount = Math.max(2, Math.floor(width / 100));
-			
+
 			// Determine optimal tick interval and format
 			let gridInterval;
 			let tickInterval;
 			let tickFormat;
-			
+
 			if (dateRangeInDays > 365 * 5) {
 				// More than 5 years
 				gridInterval = d3.timeMonth.every(3);
@@ -390,7 +406,7 @@
 				// 1-2 years
 				gridInterval = d3.timeMonth.every(1);
 				tickInterval = d3.timeMonth.every(2);
-				tickFormat = d3.timeFormat("%b %Y");
+				tickFormat = d3.timeFormat('%b %Y');
 			} else if (dateRangeInDays > 180) {
 				// 6 months - 1 year
 				gridInterval = d3.timeWeek.every(2);
@@ -421,15 +437,11 @@
 			// Update the x-axis with new ticks
 			const xAxis = svg
 				.select('.x-axis')
-				.call(
-					d3.axisBottom(xScale)
-						.ticks(tickInterval)
-						.tickFormat(tickFormat)
-				)
+				.call(d3.axisBottom(xScale).ticks(tickInterval).tickFormat(tickFormat))
 				.call((g: any) => {
 					g.select('.domain').remove();
 					g.selectAll('.tick line').style('stroke-opacity', 0);
-					
+
 					// Rotate labels if they're too dense
 					// const ticks = g.selectAll('.tick text');
 					// const tickCount = ticks.size();
@@ -449,7 +461,8 @@
 				});
 
 			// Update x-grid lines with the same tick interval
-			svg.selectAll('.x-grid')
+			svg
+				.selectAll('.x-grid')
 				.data(xScale.ticks(gridInterval))
 				.join(
 					(enter: any) =>
@@ -489,7 +502,8 @@
 							.attr('stroke-width', 1.5)
 							.attr('clip-path', 'url(#clip)')
 							.attr('d', (d: any) =>
-								d3.line()
+								d3
+									.line()
 									.x((d: any) => xScale(new Date(d.timestamp)))
 									.y((d: any) => yScale(+d.duration))(d[1])
 							),
@@ -499,7 +513,8 @@
 							.duration(animDuration)
 							.attr('clip-path', 'url(#clip)')
 							.attr('d', (d: any) =>
-								d3.line()
+								d3
+									.line()
 									.x((d: any) => xScale(new Date(d.timestamp)))
 									.y((d: any) => yScale(+d.duration))(d[1])
 							),
@@ -510,20 +525,24 @@
 		// #endregion
 
 		// #region Brush Chart
-		
+
 		// Brush function to zoom and pan chart
 		function drawBrush() {
 			// #region Initialize Brush Chart
 			const margin_brush = { top: 0, right: 30, bottom: 25, left: 60 };
 			d3.select('#brush').selectAll('*').remove();
 
-			const width_brush  = container.node().getBoundingClientRect().width - margin_brush.left - margin_brush.right;
+			const width_brush =
+				container.node().getBoundingClientRect().width - margin_brush.left - margin_brush.right;
 			const height_brush = 70 - margin_brush.top - margin_brush.bottom;
 
 			// SVG element for brush chart
 			const svg_brush = d3
 				.select('#brush')
-				.attr('viewBox', `0 0 ${width_brush + margin_brush.left + margin_brush.right} ${height_brush + margin_brush.top + margin_brush.bottom}`)
+				.attr(
+					'viewBox',
+					`0 0 ${width_brush + margin_brush.left + margin_brush.right} ${height_brush + margin_brush.top + margin_brush.bottom}`
+				)
 				.append('g')
 				.attr('transform', `translate(${margin_brush.left},${margin_brush.top})`);
 
@@ -532,7 +551,7 @@
 				.scaleTime()
 				.range([0, width_brush])
 				.domain(d3.extent(data, (d: any) => d.date));
-			
+
 			// const for calculating
 			const const_xScale_brush = d3
 				.scaleTime()
@@ -551,14 +570,16 @@
 				.append('g')
 				.attr('transform', `translate(0,${height_brush})`)
 				.style('font-size', '14px')
-				.call(d3.axisBottom(xScale_brush)
+				.call(
+					d3
+						.axisBottom(xScale_brush)
 						.tickValues(xScale_brush.ticks(d3.timeMonth.every(2)))
 						.tickFormat(d3.timeFormat('%b %Y'))
 				)
 				.call((g: any) => g.select('.domain').remove())
 				.selectAll('.tick line')
-					.style('stroke-opacity', 0);
-			
+				.style('stroke-opacity', 0);
+
 			svg_brush.selectAll('.tick text').style('fill', '#777');
 
 			// Draw grid lines
@@ -602,7 +623,7 @@
 					'#f781bf',
 					'#999999'
 				]);
-			
+
 			// Draw lines in the brush chart
 			svg_brush
 				.selectAll('.line')
@@ -616,7 +637,8 @@
 							.attr('stroke', (d: any) => color(d[0]))
 							.attr('stroke-width', 1.5)
 							.attr('clip-path', 'url(#clip)')
-							.attr('d', (d: any) => d3
+							.attr('d', (d: any) =>
+								d3
 									.line()
 									.x((d: any) => xScale_brush(new Date(d.timestamp)))
 									.y((d: any) => yScale_brush(+d.duration))(d[1])
@@ -626,7 +648,8 @@
 							.transition()
 							.duration(animDuration)
 							.attr('clip-path', 'url(#clip)')
-							.attr('d', (d: any) => d3
+							.attr('d', (d: any) =>
+								d3
 									.line()
 									.x((d: any) => xScale_brush(new Date(d.timestamp)))
 									.y((d: any) => yScale_brush(+d.duration))(d[1])
@@ -647,7 +670,7 @@
 
 			// Append brush group
 			const brushGroup = svg_brush.append('g').attr('class', 'brush').call(brush);
-			
+
 			// Brush Event Handlers
 			function brushed({ selection }: { selection: [number, number] | null }) {
 				if (!selection) return;
@@ -655,7 +678,7 @@
 				// Invert selection to date range
 				const x0 = const_xScale_brush.invert(selection[0]);
 				const x1 = const_xScale_brush.invert(selection[1]);
-				
+
 				start_date_label = x0.toISOString().split('T')[0];
 				end_date_label = x1.toISOString().split('T')[0];
 
@@ -664,7 +687,8 @@
 
 				// Update x-axis to reflect new domain
 				xScale_brush.domain([x0, x1]);
-				xAxis_brush.call(d3
+				xAxis_brush.call(
+					d3
 						.axisBottom(xScale_brush)
 						.tickValues(xScale_brush.ticks(d3.timeMonth.every(2)))
 						.tickFormat(d3.timeFormat('%b %Y'))
@@ -706,7 +730,7 @@
 		<span>End Date: {end_date_label}</span>
 	</div>
 	<svg id="brush"></svg>
-	<svg id="chart"></svg>
+	<svg id="chart" bind:this={chartsvg}></svg>
 	<div id="tooltip"></div>
 </div>
 
