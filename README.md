@@ -1,38 +1,38 @@
-# sv
+# ActivityStat Frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+The frontend for **ActivityStat**, a web application that visualizes computer activity statistics, such as time spent on specific apps or games. This project uses data exported from [ActivityWatch](https://activitywatch.net/), parses it, and displays it in interactive charts.
 
-## Creating a project
+Built with:
+- **Svelte 5**: For a reactive and efficient UI.
+- **Tailwind CSS**: For styling and responsive design.
+- **D3.js**: For creating interactive and dynamic data visualizations.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
+- Interactive charts and graphs for visualizing activity data.
 
+## Setup
+1. Clone this repository:
 ```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+git clone https://github.com/dionisiyKDO/activityStat-frontend
 ```
 
-## Developing
+2. Install dependencies:
+```bash
+npm install
+```
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
+3. Run development server:
 ```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
-
-To create a production version of your app:
-
+4. Build for production:
 ```bash
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+## Requirements
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- Node.js 16+
+- ActivityWatch data export
+- Running instance of [ActivityStat Backend](https://github.com/dionisiyKDO/activityStat-backend).
