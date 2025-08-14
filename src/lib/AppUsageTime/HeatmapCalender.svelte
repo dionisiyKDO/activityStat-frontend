@@ -210,6 +210,7 @@
 	};
 </script>
 
+<!-- TODO: threshold for time, like the whole spectrum is from 0 hours to 3 hours, and 3+ hours is the same color as the 3 hours -->
 
 <div class="mt-10 flex flex-col justify-center">
     <div id="container" class="flex justify-center">
