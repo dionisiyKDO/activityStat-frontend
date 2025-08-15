@@ -1,15 +1,15 @@
 <script lang="ts">
+	import HeatmapCalender from "$lib/AppUsageTime/HeatmapCalender.svelte";
+	import MultiSelect from "$lib/AppUsageTime/MultiSelect.svelte";
+	import LineChart from '$lib/AppUsageTime/LineChart.svelte';
+    import Chip from '$lib/AppUsageTime/Chip.svelte';
 	import { 
         fetchAppList, 
         fetchAppUsageData, 
         type App,
         type AppUsageData, 
     } from './load';
-    import Chip from './Chip.svelte';
-	import MultiSelect from "./MultiSelect.svelte";
-	import HeatmapCalender from "./HeatmapCalender.svelte";
-	import LineChart from './LineChart.svelte';
-
+ 
 	// Presets
 	const presets = [
 		{
