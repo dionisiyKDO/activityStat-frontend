@@ -14,10 +14,13 @@
         }
     };
 
-    const filteredApps = () => {
-        return app_list!.filter((app) =>
-            app.title.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+    const filteredApps = (): App[] => {
+        if (!app_list) return [];
+        return Object.entries(app_list)
+            .filter(([title]) => 
+                title.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+            .map(([title, executables]) => ({ "app":  executables, "title": title }));
     };
 
 
