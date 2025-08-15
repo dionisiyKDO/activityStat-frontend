@@ -13,7 +13,47 @@
 	let metadataReq: Promise<Metadata | null> = fetchMetadata();
 </script>
 
-{#await metadataReq}
+{#await trackStatsReq}
+	<p class="loading">Loading list...</p>
+{:then data}
+	{#if data}
+        
+        <!-- Main content area with two columns -->
+        <div class="flex gap-4">
+            
+            <!-- Left side - 70% width, scrollable content -->
+            <div class="w-[70%] flex-shrink-0">
+                <div class="p-4 mb-4 surface">
+                    <BarChart data={data.slice(0, 17)} />
+                </div>
+
+                <!-- Add more content here - forms, buttons, etc. -->
+                <!-- <div class="rounded p-4 surface">
+                    <h3 class="text-[--primary-text] text-lg mb-2">Additional Content</h3>
+                    {#each Array(20).fill(0) as _, i}
+                        <div class="p-2 rounded mb-2">
+                            <p>Content block {i + 1}</p>
+                        </div>
+                    {/each}
+                </div> -->
+            </div>
+            
+            <!-- Right side - 30% width, sticky table -->
+            <div class="w-[30%] flex-shrink-0">
+                <div class="sticky top-24 surface h-[80vh]">
+                    <Table {data} />
+                </div>
+            </div>
+            
+        </div>
+        
+	{/if}
+{:catch error}
+	<p class="error">{error.message}</p>
+{/await}
+
+
+<!-- {#await metadataReq}
     <p class="loading">Loading metadata...</p>
 {:then metadata}
 
@@ -27,16 +67,5 @@
     </div>
 {:catch error}
     <p class="error">{error.message}</p>
-{/await}
+{/await} -->
 
-
-{#await trackStatsReq}
-	<p class="loading">Loading list...</p>
-{:then data}
-	{#if data != null}
-        <BarChart {data} />
-        <Table {data} />
-    {/if}
-{:catch error}
-	<p class="error">{error.message}</p>
-{/await}
