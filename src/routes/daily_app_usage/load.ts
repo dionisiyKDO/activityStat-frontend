@@ -5,12 +5,10 @@ export interface AppUsageData {
 	duration: number
 }
 
-export interface margin {
-	top: number;
-	right: number;
-	bottom: number;
-	left: number;
-};
+export interface RawAppUsageData {
+	date: number
+	duration: number
+}
 
 export interface App {
 	app: string
@@ -20,28 +18,33 @@ export interface App {
 export async function fetchAppUsageData(apps: App[]): Promise<AppUsageData[] | null>   {
 	try {
 		let results: AppUsageData[] = [];
+		console.log(apps);
+		
 		
 		for (const app of apps) {
 		
-			const response = await fetch("/api/daily_app_usage/" + app.app);
+			const response = await fetch(
+				`/api/daily_app_usage/${app.title}`
+			);
 
 			if (!response.ok) {
 				const data = await response.json();
-				const error = data.error || 'Failed to fetch tracks';
+				const error = data.error || 'Failed to fetch app';
 				console.log(error);
 				return null;
 			}
 
-			const raw_data: AppUsageData[] | any = JSON.parse(await response.json());
+			const raw_data: RawAppUsageData[] = await response.json();
 
 			let data: AppUsageData[] = raw_data.map((d: any) => {
 				return {
-					timestamp: d.timestamp,
-					date: new Date(d.timestamp),
-					app: d.app,
-					duration: Math.round(d.duration * 100) / 100,
+					timestamp: d.date,
+					date: new Date(d.date),
+					app: app.title,
+					duration: d.duration,
 				}
-			});
+			});			
+
 			results.push(...data);
 		}
 		
@@ -53,20 +56,20 @@ export async function fetchAppUsageData(apps: App[]): Promise<AppUsageData[] | n
 }
 
 
-
-  
 export async function fetchAppList(): Promise<App[] | null>  {
 	try {
-		const response = await fetch("/api/app_list/");
+		const response = await fetch(
+			`/api/app_list/`
+		);
 
 		if (!response.ok) {
 			const data = await response.json();
-			const error = data.error || 'Failed to fetch tracks';
+			const error = data.error || 'Failed to fetch app list';
 			console.log(error);
 			return null;
 		}
 
-		const data = (await response.json());		
+		const data: App[] = await response.json();		
 		return data;
 	} catch (err) {
 		console.log(err);
