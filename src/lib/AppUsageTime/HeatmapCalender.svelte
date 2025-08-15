@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { type AppUsageData, type margin } from './load';
 
+	// TODO: add threshold for heatmap
 
     let { data }: { data: AppUsageData[] | null } = $props();
     let datasets = $derived(groupByYear(data));

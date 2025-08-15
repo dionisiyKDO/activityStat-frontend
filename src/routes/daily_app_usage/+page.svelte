@@ -1,3 +1,4 @@
+<!-- routes/daily_app_usage/+page.svelte -->
 <script lang="ts">
 	import HeatmapCalender from "$lib/AppUsageTime/HeatmapCalender.svelte";
 	import MultiSelect from "$lib/AppUsageTime/MultiSelect.svelte";
@@ -10,6 +11,8 @@
         type AppUsageData, 
     } from './load';
  
+	// TODO: Make presets fetchable and editable
+	// TODO: maybe add picking a color for app in presets
 	// Presets
 	const presets = [
 		{
@@ -93,7 +96,7 @@ add legend to line chart to disable some lines
 
 <!-- Container -->
 <div class="flex flex-col gap-4 mt-4">
-	<h1 class=" text-[--primary-text] text-3xl font-bold">App Usage Analytics</h1>
+	<h1 class="text-[--primary-text] text-3xl font-bold">App Usage Analytics</h1>
 
 	<!-- Controls -->
 	<div class="surface flex flex-col gap-4 p-6">
