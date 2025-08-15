@@ -281,11 +281,13 @@
 			const points = Array.from(sumstat, ([key, values]) => {
 				const closest = d3.least(values, (d: any) => Math.abs(xScale(d.date) - mouseXsvg));
 				if (!closest) return null; // Handle empty data
-				const closestApp = app_list!.find((app: App) => app.app === key); // find title for the app
+				const closestApp = app_list![key]; // find title for the app
+
+				console.log(closest);
 
 				return {
-					app: key,
-					title: closestApp!.title,
+					app: closestApp,
+					title: key,
 					date: closest.date,
 					duration: closest.duration,
 					x: xScale(closest.date),
