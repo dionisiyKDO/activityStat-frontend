@@ -1,64 +1,29 @@
+<!-- lib/SpentTime/Table.svelte -->
 <script lang="ts">
-	import { 
-        type SpentTime, 
-    } from '../../routes/spent_time/load';
+	import { type SpentTime } from '../../routes/spent_time/load';
 	let { data }: { data: SpentTime[] } = $props();
-	
-    $effect(() => {
-        data.forEach(d => {
-            d.duration = Number(d.duration.toFixed(2));
-        });
-    });
 </script>
 
-<div class="container">
-	<table>
-
-		<thead>
-			<tr>
-				<th>App Name</th>
-				<th>Duration (hours)</th>
-			</tr>
-		</thead>
-
-		<tbody>
-			{#each data as entrie}
-				<tr>
-					{#if entrie.title}
-						<td>{entrie.title}</td>
-					{:else}
-						<td>{entrie.app}</td>
-					{/if}
-					<td>{entrie.duration}</td>
+<div class="h-full rounded flex flex-col">
+	<div class="flex flex-col flex-1 overflow-hidden">
+		<table class="w-full border-collapse flex flex-col h-full">
+			
+			<thead class="bg-[--secondary] text-[--secondary-text] rounded-t-lg flex-shrink-0 sticky top-0 z-10">
+				<tr class="flex pr-2">
+					<th class="p-2.5 text-left border-r border-[--border] border-solid flex-1">App</th>
+					<th class="p-2.5 text-left w-20 flex-shrink-0">Hours</th>
 				</tr>
-			{/each}
-		</tbody>
-		
-	</table>
+			</thead>
+			
+			<tbody class="flex-1 overflow-y-auto pr-2">
+				{#each data as entry}
+					<tr class="flex">
+						<td class="p-2.5 truncate flex-1 border-r border-[--border] border-solid  min-w-0">{entry.title || entry.app}</td>
+						<td class="p-2.5 w-20 flex-shrink-0 text-right">{entry.duration}</td>
+					</tr>
+				{/each}
+			</tbody>
+			
+		</table>
+	</div>
 </div>
-
-<style>
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		margin: 20px 0;
-		font-size: 18px;
-		text-align: left;
-	}
-
-	th,
-	td {
-		padding: 12px;
-		border-bottom: 1px solid #a5a5a5;
-	}
-
-	th {
-		background-color: #f2f2f2;
-		color: black;
-	}
-
-	tr:hover {
-		background-color: #353535;
-		color: #f2f2f2;
-	}
-</style>
