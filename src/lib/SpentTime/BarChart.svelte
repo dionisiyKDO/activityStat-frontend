@@ -40,9 +40,11 @@
 
         // Get actual container dimensions
         const containerRect = chartContainer.getBoundingClientRect();
-        const margin = { top: 20, right: 20, bottom: 40, left: 60 }; // const margin = { top: 10, right: 60, bottom: 100, left: 60 };
+        const margin = { top: 10, right: 10, bottom: 100, left: 80 }; // const margin = { top: 10, right: 60, bottom: 100, left: 60 };
         const width = containerRect.width - margin.left - margin.right;
-        const height = 350 - margin.top - margin.bottom;
+        const chartHeight = 550;
+        const height = chartHeight - margin.top - margin.bottom;
+
         
         if (width <= 0 || height <= 0) return;
 
@@ -51,7 +53,7 @@
         // Set up SVG with proper dimensions
         const svg = d3.select(chartSvg)
             .attr("width", containerRect.width)
-            .attr("height", 350)
+            .attr("height", chartHeight)
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -79,6 +81,12 @@
             .selectAll(".tick line")
             .style("stroke", chartStroke)
             .style("stroke-opacity", 0)
+
+        xAxis.selectAll(".tick text")
+            .style("text-anchor", "end")
+            .attr("transform", "rotate(-30)")
+            .attr("dx", "-0.5em")
+            .attr("dy", "0.15em");
         
         svg.append("g")
             .attr("class", "y-axis")
