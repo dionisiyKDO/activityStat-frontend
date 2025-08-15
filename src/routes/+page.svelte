@@ -1,4 +1,22 @@
 <script>
+	
+</script>
+
+<div class="w-auto flex justify-center text-9xl">
+	Aboba
+</div>
+
+
+
+
+
+
+
+
+
+
+<!-- 
+<script>
 	import { onMount } from 'svelte';
 	import * as d3 from 'd3';
 
@@ -152,4 +170,5 @@
 		stroke: #69b3a2;
 		shape-rendering: crispEdges;
 	}
-</style>
+</style> 
+-->
