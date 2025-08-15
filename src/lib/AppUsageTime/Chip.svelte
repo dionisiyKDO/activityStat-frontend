@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { App } from "./load";
+    import type { App } from "../../routes/daily_app_usage/load";
 
     export let app: App;
     export let onRemove: () => void;
