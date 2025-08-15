@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { 
         type SpentTime, 
-    } from './load';
+    } from '../../routes/spent_time/load';
 	let { data }: { data: SpentTime[] } = $props();
 	
     $effect(() => {
