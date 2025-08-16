@@ -28,22 +28,12 @@
 
         const lowerSearchTerm = searchTerm.toLowerCase();
         if (!lowerSearchTerm) {
-            return Object.entries(app_list).map(([title, executables]) => ({ 
-                app: executables, 
-                title 
-            }));
+            return app_list;
         }
-        
-        return Object.entries(app_list)
-            .filter(([title]) => title.toLowerCase().includes(lowerSearchTerm))
-            // .map(([title, executables]) => ({ 
-            //     app: executables, 
-            //     title 
-            // }));
-            .map(([title, executables]) => ({ 
-                "app":  executables, 
-                "title": title 
-            }));
+
+        return app_list.filter(app =>
+            app.title.toLowerCase().includes(lowerSearchTerm)
+        );
     });
 
     // Reset highlighted index when filtered apps change
