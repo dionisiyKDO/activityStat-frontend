@@ -20,6 +20,6 @@ export interface RawAppUsageData {
 }
 
 export interface App {
-	app: string
+	app: string[]
 	title: string
 }
