@@ -236,8 +236,3 @@
     <svg bind:this={chartSvg} class="w-full"></svg>
 </div>
 
-
-<!-- <div id="chart-container">
-    <svg id="spent-time-chart"></svg>
-    <div id="bar-tooltip" class="tooltip"></div>
-</div> -->
