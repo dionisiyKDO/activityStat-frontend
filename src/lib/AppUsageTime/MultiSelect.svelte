@@ -1,31 +1,62 @@
 <script lang="ts">
-    import { type App } from './load';
-    let { app_list, selectedApps = $bindable() }: { app_list: App[] | null; selectedApps: App[] } = $props();
+    import { type App } from '$lib/types';
+
+    interface Props {
+        app_list: App[] | null; 
+        selectedApps: App[]
+    }
+    let { app_list, selectedApps = $bindable() }: Props = $props();
+    
     let searchTerm: string = $state('');
     let isDropdownOpen: boolean = $state(false);
     let highlightedIndex: number = $state(-1);
     let dropdownRef: HTMLElement | null = $state(null);
 
+    // Create a Set for O(1) lookup of selected apps
+    const selectedTitles = $derived(new Set(selectedApps.map(app => app.title)));
+
     const toggleSelect = (app: App) => {
-        if (selectedApps.some(item => item.title === app.title)) {
+        if (selectedTitles.has(app.title)) {
             selectedApps = selectedApps.filter((f) => f.title !== app.title);
         } else {
             selectedApps = [...selectedApps, app];
         }
     };
 
-    const filteredApps = (): App[] => {
+    const filteredApps = $derived.by(() => {
         if (!app_list) return [];
-        return Object.entries(app_list)
-            .filter(([title]) => 
-                title.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .map(([title, executables]) => ({ "app":  executables, "title": title }));
-    };
 
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        if (!lowerSearchTerm) {
+            return Object.entries(app_list).map(([title, executables]) => ({ 
+                app: executables, 
+                title 
+            }));
+        }
+        
+        return Object.entries(app_list)
+            .filter(([title]) => title.toLowerCase().includes(lowerSearchTerm))
+            // .map(([title, executables]) => ({ 
+            //     app: executables, 
+            //     title 
+            // }));
+            .map(([title, executables]) => ({ 
+                "app":  executables, 
+                "title": title 
+            }));
+    });
+
+    // Reset highlighted index when filtered apps change
+    $effect(() => {
+        if (filteredApps.length === 0) {
+            highlightedIndex = -1;
+        } else if (highlightedIndex >= filteredApps.length) {
+            highlightedIndex = Math.max(0, filteredApps.length - 1);
+        }
+    });
 
     const handleKeyDown = (e: KeyboardEvent) => {
-        const apps = filteredApps();
+        const apps = filteredApps;
 
         switch (e.key) {
             case 'ArrowDown':
@@ -41,7 +72,7 @@
                 break;
 
             case 'Enter':
-                if (highlightedIndex >= 0) {
+                if (highlightedIndex >= 0 && apps[highlightedIndex]) {
                     toggleSelect(apps[highlightedIndex]);
                     // if (apps.length === 1) isDropdownOpen = false;
                     isDropdownOpen = false;
@@ -57,7 +88,8 @@
 
     function clickOutside(node: HTMLElement) {
         const handleClick = (event: MouseEvent) => {
-            if (node && !node.contains(event.target as Node) && !dropdownRef?.contains(event.target as Node)) {
+            const target = event.target as Node;
+            if (node && !node.contains(target) && !dropdownRef?.contains(target)) {
                 isDropdownOpen = false;
             }
         };
@@ -71,7 +103,7 @@
     }
 
     const scrollToHighlighted = () => {
-        if (dropdownRef && dropdownRef.children[highlightedIndex]) {
+        if (dropdownRef?.children[highlightedIndex]) {
             const highlightedElement = dropdownRef.children[highlightedIndex] as HTMLElement;
             highlightedElement.scrollIntoView({ 
                 behavior: 'instant', 
@@ -79,17 +111,33 @@
             });
         }
     };
+
+    // Handle input focus and changes
+    const handleFocus = () => {
+        isDropdownOpen = true;
+    };
+
+    const handleInput = () => {
+        isDropdownOpen = true;
+        highlightedIndex = filteredApps.length > 0 ? 0 : -1;
+    };
+
+    const handleItemClick = (app: App) => {
+        toggleSelect(app);
+        isDropdownOpen = false;
+    };
+
+    const handleMouseOver = (index: number) => {
+        highlightedIndex = index;
+    };
 </script>
 
 <input
     type="text"
     placeholder="Select apps"
     bind:value={searchTerm}
-    onfocus={() => isDropdownOpen = true}
-    oninput={() => {
-        isDropdownOpen = true;
-        highlightedIndex = 0;
-    }}
+    onfocus={handleFocus}
+    oninput={handleInput}
     onkeydown={handleKeyDown}
     use:clickOutside
     class="input w-full"
@@ -108,10 +156,10 @@
         text-[--foreground]
         "
     >
-        {#if filteredApps().length === 0}
+        {#if filteredApps.length === 0}
             <li class="px-4 py-2 text-center text-sm text-gray-500">No results found</li>
         {:else}
-            {#each filteredApps() as app, index}
+            {#each filteredApps as app, index (app.title)}
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                 <li
@@ -120,16 +168,13 @@
                         px-4 py-2 
                         hover:bg-[--input-background]
                         {index === highlightedIndex ? 'bg-[--input-background]' : ''}
-                        {selectedApps.some(selected => selected.title === app.title) 
+                        {selectedTitles.has(app.title)
                             ? 'text-[--primary]' 
                             : 'text-[--foreground]'}
                     "
-                    onclick={() => {
-                        toggleSelect(app);
-                        isDropdownOpen = false;
-                    }}
-                    onmouseover={() => { highlightedIndex = index; }}
-                    onfocus={() => { highlightedIndex = index; }}
+                    onclick={() => handleItemClick(app)}
+                    onmouseover={() => handleMouseOver(index)}
+                    onfocus={() => handleMouseOver(index)}
                 >
                     {app.title}
                 </li>
@@ -137,4 +182,3 @@
         {/if}
     </ul>
 {/if}
-
