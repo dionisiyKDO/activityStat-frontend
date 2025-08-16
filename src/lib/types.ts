@@ -4,3 +4,22 @@ export interface margin {
 	bottom: number;
 	left: number;
 };
+
+
+// Daily app usage
+export interface AppUsageData {
+	timestamp: number
+	date: Date | null
+	app: string
+	duration: number
+}
+
+export interface RawAppUsageData {
+	date: number
+	duration: number
+}
+
+export interface App {
+	app: string
+	title: string
+}

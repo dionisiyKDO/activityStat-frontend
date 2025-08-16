@@ -1,25 +1,10 @@
-export interface AppUsageData {
-	timestamp: number
-	date: Date | null
-	app: string
-	duration: number
-}
+import { type AppUsageData, type App, type margin } from '$lib/types';
 
-export interface RawAppUsageData {
-	date: number
-	duration: number
-}
 
-export interface App {
-	app: string
-	title: string
-}
 
 export async function fetchAppUsageData(apps: App[]): Promise<AppUsageData[] | null>   {
 	try {
-		let results: AppUsageData[] = [];
-		console.log(apps);
-		
+		let results: AppUsageData[] = [];		
 		
 		for (const app of apps) {
 		
