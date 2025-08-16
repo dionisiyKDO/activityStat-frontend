@@ -1,12 +1,10 @@
 <script lang="ts">
-    import type { App } from "../../routes/daily_app_usage/load";
+    import type { App } from "$lib/types";
 
-    export let app: App;
-    export let onRemove: () => void;
+	let { app, onRemove }: { app: App, onRemove: () => void } = $props();
 </script>
 
 <div class="chip">
     {app.title}
     <button onclick={onRemove} class="chip-button">&times;</button>
 </div>
-
