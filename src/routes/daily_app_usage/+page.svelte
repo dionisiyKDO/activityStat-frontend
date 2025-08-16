@@ -7,9 +7,11 @@
 	import { 
         fetchAppList, 
         fetchAppUsageData, 
+    } from './load';
+	import { 
         type App,
         type AppUsageData, 
-    } from './load';
+    } from '$lib/types';
  
 	// TODO: Make presets fetchable and editable
 	// TODO: maybe add picking a color for app in presets
@@ -18,48 +20,48 @@
 		{
 			"name": "Gi/HSR/ZZZ",	
 			"preset": [
-				{ app: 'GenshinImpact.exe', title: 'Genshin Impact' },
-				{ app: 'StarRail.exe', title: 'Honkai: Star Rail' },
-				{ app: 'ZenlessZoneZero.exe', title: 'Zenless Zone Zero' }
+				{ app: ['GenshinImpact.exe'], title: 'Genshin Impact' },
+				{ app: ['StarRail.exe'], title: 'Honkai: Star Rail' },
+				{ app: ['ZenlessZoneZero.exe'], title: 'Zenless Zone Zero' }
 			],
 		},
 		{
 			"name": "Gacha",
 			"preset": [
 				{
-					"app": "GenshinImpact.exe",
+					"app": ["GenshinImpact.exe"],
 					"title": "Genshin Impact"
 				},
 				{
-					"app": "StarRail.exe",
+					"app": ["StarRail.exe"],
 					"title": "Honkai: Star Rail"
 				},
 				{
-					"app": "ZenlessZoneZero.exe",
+					"app": ["ZenlessZoneZero.exe"],
 					"title": "Zenless Zone Zero"
 				},
 				{
-					"app": "dnplayer.exe",
+					"app": ["dnplayer.exe"],
 					"title": "LDPlayer"
 				},
 				{
-					"app": "reverse1999.exe",
+					"app": ["reverse1999.exe"],
 					"title": "Reverse 1999"
 				},
 				{
-					"app": "Client-Win64-Shipping.exe",
+					"app": ["Client-Win64-Shipping.exe"],
 					"title": "Wuthering Waves"
 				},
 				{
-					"app": "nikke.exe",
+					"app": ["nikke.exe"],
 					"title": "Goddess of Victory: Nikke"
 				},
 				{
-					"app": "X6Game-Win64-Shipping.exe",
+					"app": ["X6Game-Win64-Shipping.exe"],
 					"title": "Infinity Nikki"
 				},
 				{
-					"app": "GF2_Exilium.exe",
+					"app": ["GF2_Exilium.exe"],
 					"title": "GF2 Exilium"
 				}
 			],
@@ -159,6 +161,3 @@ add legend to line chart to disable some lines
 	</div>
 
 </div> 
-
-<style>
-</style>
