@@ -1,43 +1,48 @@
+<!-- // claude -->
 <script lang="ts">
 	// @ts-ignore: Ignore TS errors for d3 library
 	import * as d3 from 'd3';
-	import { type AppUsageData, type App, type margin } from './load';
+	import { type AppUsageData, type App, type margin } from '$lib/types';
 
-	// TODO: connect bind:this isntead of selecting by id
-    let chartsvg: SVGSVGElement;
-    let chartContainer: HTMLElement;
+	let chartContainer: HTMLDivElement;
+	let chartSvg: SVGSVGElement;
+	let brushSvg: SVGSVGElement;
+	let tooltipDiv: HTMLDivElement;
 
 	// #region Data Preparation
-	let { data, app_list }: { data: AppUsageData[] | null; app_list: App[] | null } = $props();
+    interface Props {
+        data: AppUsageData[] | null;
+        app_list: App[] | null;
+    }
+	let { data, app_list }: Props = $props();
+	
+	// Date range calculation
+	const dateExtent = d3.extent(data, (d: any) => d.date) as [Date, Date];
+	const initialStartDate = dateExtent[0].toISOString().split('T')[0];
+	const initialEndDate = dateExtent[1].toISOString().split('T')[0];
+
+	let currentStartDate = $state(initialStartDate);
+	let currentEndDate = $state(initialEndDate);
+
 	let filteredData = $derived(
 		data?.filter((d: any) => {
-			return d.date >= new Date(start_date) && d.date <= new Date(end_date);
+			return d.date >= new Date(initialStartDate) && d.date <= new Date(initialEndDate);
 		})
 	);
 
-	// d3.extent(data, (d: any) => d.date) 	- ['1999-01-01T00:00:00.000Z', '2050-01-01T00:00:00.000Z']
-	// .toISOString().split('T') 			- ['1999-01-01', '0:00:00.000Z']
-	const start_date = d3
-		.extent(data, (d: any) => d.date)[0]
-		.toISOString()
-		.split('T')[0];
-	const end_date = d3
-		.extent(data, (d: any) => d.date)[1]
-		.toISOString()
-		.split('T')[0];
-
-	let start_date_label = $state(
-		d3
-			.extent(data, (d: any) => d.date)[0]
-			.toISOString()
-			.split('T')[0]
-	);
-	let end_date_label = $state(
-		d3
-			.extent(data, (d: any) => d.date)[1]
-			.toISOString()
-			.split('T')[0]
-	);
+	const color = d3
+		.scaleOrdinal()
+		.range([
+			'#e41a1c',
+			'#377eb8',
+			'#4daf4a',
+			'#984ea3',
+			'#ff7f00',
+			'#ffff33',
+			'#a65628',
+			'#f781bf',
+			'#999999'
+		]);
 
 	let animDuration = 0; // better keep it zero for performance
 	// #endregion
@@ -46,27 +51,29 @@
 		drawChart();
 	});
 
-	// TODO: tooltip out of bounds fix
 	function drawChart() {
-		// #region Main chart
-		d3.select(chartsvg).selectAll('*').remove();
+		if (!chartContainer || !chartSvg || !data?.length) return;
 
-		// Chart container dimensions and margins
-		const container = d3.select('#container');
+		// Clear previous chart
+		d3.select(chartSvg).selectAll('*').remove();
+
+		// Get actual container dimensions
+		const containerRect = chartContainer.getBoundingClientRect();
 		const margin: margin = { top: 10, right: 30, bottom: 30, left: 60 };
-		const width = container.node().getBoundingClientRect().width - margin.left - margin.right;
-		const height = 400 - margin.top - margin.bottom;
+		const width = containerRect.width - margin.left - margin.right;
+		const chartHeight = 350;
+		const height = chartHeight - margin.top - margin.bottom;
+
+		if (width <= 0 || height <= 0) return;
 
 		// Draw the "brush" chart
 		drawBrush();
 
 		// #region SVG Initialization
-		let svg = d3
-			.select(chartsvg)
-			.attr(
-				'viewBox',
-				`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`
-			)
+		const svg = d3
+			.select(chartSvg)
+			.attr('width', containerRect.width)
+			.attr('height', chartHeight)
 			.append('g')
 			.attr('transform', `translate(${margin.left},${margin.top})`);
 
@@ -79,22 +86,8 @@
 			.attr('width', width)
 			.attr('height', height);
 
-		// Group data by 'app' (to separate lines per app).
+		// Group data by 'app' (to separate lines per app)
 		const sumstat = d3.group(filteredData, (d: any) => d.app);
-		// Define a color scale for apps
-		const color = d3
-			.scaleOrdinal()
-			.range([
-				'#e41a1c',
-				'#377eb8',
-				'#4daf4a',
-				'#984ea3',
-				'#ff7f00',
-				'#ffff33',
-				'#a65628',
-				'#f781bf',
-				'#999999'
-			]);
 
 		// Define Time scale (x-axis)
 		let xScale = d3
@@ -108,13 +101,11 @@
 			.range([height, 0])
 			.domain([0, d3.max(data, (d: any) => d.duration)])
 			.nice();
-
 		// #endregion
 
 		// #region Axes, Grid, Bounds
-
 		// Draw the x-axis
-		let xAxis = svg
+		const xAxis = svg
 			.append('g')
 			.attr('class', 'x-axis')
 			.attr('transform', `translate(0,${height})`)
@@ -127,7 +118,7 @@
 			});
 
 		// Draw the y-axis
-		let yAxis = svg
+		const yAxis = svg
 			.append('g')
 			.attr('class', 'y-axis')
 			.style('font-size', '14px')
@@ -138,7 +129,7 @@
 				g.selectAll('.tick text').style('fill', '#777').style('font-size', '14px');
 			});
 
-		// Draw x-grid lines.
+		// Draw x-grid lines
 		const xGrid = svg
 			.selectAll('xGrid')
 			.data(xScale.ticks(d3.timeMonth.every(1)))
@@ -163,7 +154,7 @@
 				(exit: any) => exit.remove()
 			);
 
-		// Draw y-grid lines.
+		// Draw y-grid lines
 		const yGrid = svg
 			.selectAll('yGrid')
 			.data(yScale.ticks())
@@ -176,7 +167,7 @@
 			.attr('stroke-width', 0.5)
 			.attr('stroke-opacity', 0.33);
 
-		// Add y-axis label.
+		// Add y-axis label
 		svg
 			.append('text')
 			.attr('transform', 'rotate(-90)')
@@ -189,7 +180,7 @@
 			.style('font-family', 'sans-serif')
 			.text('Duration');
 
-		// Draw chart boundary.
+		// Draw chart boundary
 		svg
 			.append('rect')
 			.attr('x', 0)
@@ -198,12 +189,10 @@
 			.attr('height', height)
 			.attr('stroke', '#777')
 			.attr('fill', 'none');
-
 		// #endregion
 
 		// #region Draw Chart Lines
-
-		// Draw the lines for each 'app' in the dataset.
+		// Draw the lines for each 'app' in the dataset
 		svg
 			.selectAll('.line')
 			.data(sumstat, (d: any) => d[0]) // Key: app name
@@ -235,11 +224,9 @@
 						),
 				(exit: any) => exit.remove()
 			);
-
 		// #endregion
 
 		// #region Draw Tooltip
-
 		// Set up the tooltip line to indicate the cursor's x-position
 		const tooltipLine = svg
 			.append('line')
@@ -249,7 +236,7 @@
 
 		// Set up the tooltip container
 		const tooltip = d3
-			.select('#tooltip')
+			.select(tooltipDiv)
 			.style('opacity', 0)
 			.style('position', 'fixed')
 			.style('white-space', 'nowrap')
@@ -271,7 +258,7 @@
 			.on('mousemove', drawTooltip)
 			.on('mouseout', removeTooltip);
 
-		// Handles tooltip rendering and positioning on mousemove.
+		// Handles tooltip rendering and positioning on mousemove
 		function drawTooltip(event: any) {
 			const [mouseXsvg, mouseYsvg] = d3.pointer(event);
 			const mouseX = event.clientX;
@@ -361,17 +348,15 @@
 				.style('pointer-events', 'none');
 		}
 
-		// Removes the tooltip and related elements on mouseout.
+		// Removes the tooltip and related elements on mouseout
 		function removeTooltip() {
 			tooltip.style('opacity', 0); // Hide tooltip
 			tooltipLine.attr('opacity', 0); // Hide tooltip line
 			svg.selectAll('.tooltip-circle').remove(); // Remove circles
 		}
-
 		// #endregion
 
 		// #region Update chart on brush selection
-
 		/**
 		 * Updates the chart when the brush selection changes.
 		 * @param start - Start date of the new domain.
@@ -443,23 +428,6 @@
 				.call((g: any) => {
 					g.select('.domain').remove();
 					g.selectAll('.tick line').style('stroke-opacity', 0);
-
-					// Rotate labels if they're too dense
-					// const ticks = g.selectAll('.tick text');
-					// const tickCount = ticks.size();
-					// if (width / tickCount < 80) {
-					// 	ticks
-					// 		.attr('transform', 'rotate(-45)')
-					// 		.style('text-anchor', 'end')
-					// 		.attr('dx', '-0.8em')
-					// 		.attr('dy', '0.15em');
-					// } else {
-					// 	ticks
-					// 		.attr('transform', null)
-					// 		.style('text-anchor', 'middle')
-					// 		.attr('dx', null)
-					// 		.attr('dy', '0.71em');
-					// }
 				});
 
 			// Update x-grid lines with the same tick interval
@@ -523,111 +491,95 @@
 					(exit: any) => exit.remove()
 				);
 		}
-
 		// #endregion
 
 		// #region Brush Chart
-
 		// Brush function to zoom and pan chart
 		function drawBrush() {
-			// #region Initialize Brush Chart
-			const margin_brush = { top: 0, right: 30, bottom: 25, left: 60 };
-			d3.select('#brush').selectAll('*').remove();
+			if (!brushSvg) return;
 
-			const width_brush =
-				container.node().getBoundingClientRect().width - margin_brush.left - margin_brush.right;
-			const height_brush = 70 - margin_brush.top - margin_brush.bottom;
+			// #region Initialize Brush Chart
+			d3.select(brushSvg).selectAll('*').remove();
+
+			const containerRect = chartContainer.getBoundingClientRect();
+			const margin: margin = { top: 0, right: 30, bottom: 25, left: 60 };
+			const width = containerRect.width - margin.left - margin.right;
+			const brushHeight = 60;
+			const height = brushHeight - margin.top - margin.bottom;
 
 			// SVG element for brush chart
-			const svg_brush = d3
-				.select('#brush')
-				.attr(
-					'viewBox',
-					`0 0 ${width_brush + margin_brush.left + margin_brush.right} ${height_brush + margin_brush.top + margin_brush.bottom}`
-				)
+			const svg = d3
+				.select(brushSvg)
+				.attr('width', containerRect.width)
+				.attr('height', brushHeight)
 				.append('g')
-				.attr('transform', `translate(${margin_brush.left},${margin_brush.top})`);
+				.attr('transform', `translate(${margin.left},${margin.top})`);
 
 			// regular x-scale for chart
-			let xScale_brush = d3
+			let xScale = d3
 				.scaleTime()
-				.range([0, width_brush])
+				.range([0, width])
 				.domain(d3.extent(data, (d: any) => d.date));
 
 			// const for calculating
-			const const_xScale_brush = d3
+			const constXScale = d3
 				.scaleTime()
-				.range([0, width_brush])
+				.range([0, width])
 				.domain(d3.extent(data, (d: any) => d.date));
 
 			// y-scale needed for lines
-			let yScale_brush = d3
+			let yScale = d3
 				.scaleLinear()
-				.range([height_brush, 0])
+				.range([height, 0])
 				.domain([0, d3.max(data, (d: any) => d.duration)])
 				.nice();
 
 			// x-axis
-			let xAxis_brush = svg_brush
+			let xAxis = svg
 				.append('g')
-				.attr('transform', `translate(0,${height_brush})`)
+				.attr('transform', `translate(0,${height})`)
 				.style('font-size', '14px')
 				.call(
 					d3
-						.axisBottom(xScale_brush)
-						.tickValues(xScale_brush.ticks(d3.timeMonth.every(2)))
+						.axisBottom(xScale)
+						.tickValues(xScale.ticks(d3.timeMonth.every(2)))
 						.tickFormat(d3.timeFormat('%b %Y'))
 				)
 				.call((g: any) => g.select('.domain').remove())
 				.selectAll('.tick line')
 				.style('stroke-opacity', 0);
 
-			svg_brush.selectAll('.tick text').style('fill', '#777');
+			svg.selectAll('.tick text').style('fill', '#777');
 
 			// Draw grid lines
-			svg_brush
+			svg
 				.selectAll('xGrid')
-				.data(xScale_brush.ticks(20))
+				.data(xScale.ticks(20))
 				.attr('class', 'x-grid')
 				.join('line')
-				.attr('x1', (d: any) => xScale_brush(d))
-				.attr('x2', (d: any) => xScale_brush(d))
+				.attr('x1', (d: any) => xScale(d))
+				.attr('x2', (d: any) => xScale(d))
 				.attr('y1', 0)
-				.attr('y2', height_brush)
+				.attr('y2', height)
 				.attr('stroke', '#e0e0e0')
 				.attr('stroke-width', 0.5)
 				.attr('stroke-opacity', 0.33);
 
 			// Add border around brush chart
-			svg_brush
+			svg
 				.append('rect')
 				.attr('x', 0)
 				.attr('y', 0)
-				.attr('width', width_brush)
-				.attr('height', height_brush)
+				.attr('width', width)
+				.attr('height', height)
 				.attr('stroke', '#777')
 				.attr('fill', 'none');
 
 			// Group data by 'app' for line chart
 			const sumstat = d3.group(filteredData, (d: any) => d.app);
 
-			// Define color scale
-			const color = d3
-				.scaleOrdinal()
-				.range([
-					'#e41a1c',
-					'#377eb8',
-					'#4daf4a',
-					'#984ea3',
-					'#ff7f00',
-					'#ffff33',
-					'#a65628',
-					'#f781bf',
-					'#999999'
-				]);
-
 			// Draw lines in the brush chart
-			svg_brush
+			svg
 				.selectAll('.line')
 				.data(sumstat)
 				.join(
@@ -642,8 +594,8 @@
 							.attr('d', (d: any) =>
 								d3
 									.line()
-									.x((d: any) => xScale_brush(new Date(d.timestamp)))
-									.y((d: any) => yScale_brush(+d.duration))(d[1])
+									.x((d: any) => xScale(new Date(d.timestamp)))
+									.y((d: any) => yScale(+d.duration))(d[1])
 							),
 					(update: any) =>
 						update
@@ -653,12 +605,11 @@
 							.attr('d', (d: any) =>
 								d3
 									.line()
-									.x((d: any) => xScale_brush(new Date(d.timestamp)))
-									.y((d: any) => yScale_brush(+d.duration))(d[1])
+									.x((d: any) => xScale(new Date(d.timestamp)))
+									.y((d: any) => yScale(+d.duration))(d[1])
 							),
 					(exit: any) => exit.remove()
 				);
-
 			// #endregion
 
 			// #region Brush functionality
@@ -666,74 +617,73 @@
 				.brushX()
 				.extent([
 					[0, 0],
-					[width_brush, height_brush]
+					[width, height]
 				])
 				.on('brush end', brushed);
 
 			// Append brush group
-			const brushGroup = svg_brush.append('g').attr('class', 'brush').call(brush);
+			const brushGroup = svg.append('g').attr('class', 'brush').call(brush);
 
 			// Brush Event Handlers
 			function brushed({ selection }: { selection: [number, number] | null }) {
 				if (!selection) return;
 
 				// Invert selection to date range
-				const x0 = const_xScale_brush.invert(selection[0]);
-				const x1 = const_xScale_brush.invert(selection[1]);
+				const x0 = constXScale.invert(selection[0]);
+				const x1 = constXScale.invert(selection[1]);
 
-				start_date_label = x0.toISOString().split('T')[0];
-				end_date_label = x1.toISOString().split('T')[0];
+				currentStartDate = x0.toISOString().split('T')[0];
+				currentEndDate = x1.toISOString().split('T')[0];
 
 				// Update main chart with the selected range
 				updateChart(x0, x1);
 
 				// Update x-axis to reflect new domain
-				xScale_brush.domain([x0, x1]);
-				xAxis_brush.call(
+				xScale.domain([x0, x1]);
+				xAxis.call(
 					d3
-						.axisBottom(xScale_brush)
-						.tickValues(xScale_brush.ticks(d3.timeMonth.every(2)))
+						.axisBottom(xScale)
+						.tickValues(xScale.ticks(d3.timeMonth.every(2)))
 						.tickFormat(d3.timeFormat('%b %Y'))
 				);
 			}
 
 			// Reset chart on double-click
-			svg_brush.on('dblclick', () => {
+			svg.on('dblclick', () => {
 				const fullExtent = d3.extent(data, (d: any) => d.date) as [string, string];
 
-				// Reset xScale_brush and main chart
-				xScale_brush.domain(fullExtent);
+				// Reset xScale and main chart
+				xScale.domain(fullExtent);
 
-				start_date_label = new Date(fullExtent[0]).toISOString().split('T')[0];
-				end_date_label = new Date(fullExtent[1]).toISOString().split('T')[0];
+				currentStartDate = new Date(fullExtent[0]).toISOString().split('T')[0];
+				currentEndDate = new Date(fullExtent[1]).toISOString().split('T')[0];
 				updateChart(fullExtent[0], fullExtent[1]);
 
 				// Clear brush selection
 				brushGroup.call(brush.move, null);
 
 				// Reset x-axis
-				xAxis_brush.call(
+				xAxis.call(
 					d3
-						.axisBottom(xScale_brush)
-						.tickValues(xScale_brush.ticks(d3.timeMonth.every(2)))
+						.axisBottom(xScale)
+						.tickValues(xScale.ticks(d3.timeMonth.every(2)))
 						.tickFormat(d3.timeFormat('%b %Y'))
 				);
-				// #endregion
 			});
+			// #endregion
 		}
-
 		// #endregion
 	}
 </script>
 
-<div id="container">
+<div bind:this={chartContainer}>
 	<div class="my-2 flex justify-center gap-4" style="color: #777;">
-		<span>Start Date: {start_date_label}</span>
-		<span>End Date: {end_date_label}</span>
+		<span>Start Date: {currentStartDate}</span>
+		<span>End Date: {currentEndDate}</span>
 	</div>
-	<svg id="brush"></svg>
-	<svg id="chart" bind:this={chartsvg}></svg>
-	<div id="tooltip"></div>
+	<svg bind:this={brushSvg}></svg>
+	<svg bind:this={chartSvg}></svg>
+	<div bind:this={tooltipDiv}></div>
 </div>
 
 <style>
