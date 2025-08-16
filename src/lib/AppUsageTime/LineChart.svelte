@@ -1,4 +1,3 @@
-<!-- // claude -->
 <script lang="ts">
 	// @ts-ignore: Ignore TS errors for d3 library
 	import * as d3 from 'd3';
@@ -10,12 +9,12 @@
 	let tooltipDiv: HTMLDivElement;
 
 	// #region Data Preparation
-    interface Props {
-        data: AppUsageData[] | null;
-        app_list: App[] | null;
-    }
+	interface Props {
+		data: AppUsageData[] | null;
+		app_list: App[] | null;
+	}
 	let { data, app_list }: Props = $props();
-	
+
 	// Date range calculation
 	const dateExtent = d3.extent(data, (d: any) => d.date) as [Date, Date];
 	const initialStartDate = dateExtent[0].toISOString().split('T')[0];
@@ -30,8 +29,8 @@
 		})
 	);
 
-	const color = d3
-		.scaleOrdinal()
+	const colorScale = d3
+		.scaleOrdinal<string>()
 		.range([
 			'#e41a1c',
 			'#377eb8',
@@ -92,29 +91,50 @@
 		// Define Time scale (x-axis)
 		let xScale = d3
 			.scaleTime()
-			.range([0, width])
-			.domain(d3.extent(filteredData, (d: any) => d.date));
+			.domain(d3.extent(filteredData, (d: any) => d.date))
+			.range([0, width]);
 
 		// Define Linear scale (y-axis)
 		let yScale = d3
 			.scaleLinear()
-			.range([height, 0])
 			.domain([0, d3.max(data, (d: any) => d.duration)])
+			.range([height, 0])
 			.nice();
 		// #endregion
 
 		// #region Axes, Grid, Bounds
 		// Draw the x-axis
+		const dateRange = xScale.domain();
+		const daySpan = d3.timeDay.count(dateRange[0], dateRange[1]);
+
+		let tickInterval: d3.TimeInterval;
+		let tickFormat: (date: Date) => string;
+
+		if (daySpan > 365 * 2) {
+			tickInterval = d3.timeMonth.every(6) || d3.timeMonth;
+			tickFormat = d3.timeFormat('%Y');
+		} else if (daySpan > 365) {
+			tickInterval = d3.timeMonth.every(2) || d3.timeMonth;
+			tickFormat = d3.timeFormat("%b '%y");
+		} else if (daySpan > 90) {
+			tickInterval = d3.timeMonth.every(1) || d3.timeMonth;
+			tickFormat = d3.timeFormat('%b %Y');
+		} else {
+			tickInterval = d3.timeWeek.every(2) || d3.timeWeek;
+			tickFormat = d3.timeFormat('%m/%d/%y');
+		}
+
 		const xAxis = svg
 			.append('g')
 			.attr('class', 'x-axis')
 			.attr('transform', `translate(0,${height})`)
 			.style('font-size', '14px')
-			.call(d3.axisBottom(xScale).ticks(d3.timeMonth.every(3)).tickFormat(d3.timeFormat('%b %Y')))
+			.call(d3.axisBottom(xScale).ticks(tickInterval).tickFormat(tickFormat))
+			// .call(d3.axisBottom(xScale).ticks(d3.timeMonth.every(3)).tickFormat(d3.timeFormat('%b %Y')))
 			.call((g: any) => {
 				g.select('.domain').remove();
 				g.selectAll('.tick line').style('stroke-opacity', 0);
-				g.selectAll('.tick text').style('fill', '#777').style('font-size', '14px');
+				g.selectAll('.tick text').style('fill', '#777');
 			});
 
 		// Draw the y-axis
@@ -126,37 +146,25 @@
 			.call((g: any) => {
 				g.select('.domain').remove();
 				g.selectAll('.tick line').style('stroke-opacity', 0);
-				g.selectAll('.tick text').style('fill', '#777').style('font-size', '14px');
+				g.selectAll('.tick text').style('fill', '#777');
 			});
 
-		// Draw x-grid lines
-		const xGrid = svg
-			.selectAll('xGrid')
-			.data(xScale.ticks(d3.timeMonth.every(1)))
-			.join(
-				(enter: any) =>
-					enter
-						.append('line')
-						.attr('class', 'x-grid')
-						.attr('y1', 0)
-						.attr('y2', height)
-						.attr('stroke', '#e0e0e0')
-						.attr('stroke-width', 0.5)
-						.attr('stroke-opacity', 0.33)
-						.attr('x1', (d: any) => xScale(d))
-						.attr('x2', (d: any) => xScale(d)),
-				(update: any) =>
-					update
-						.transition()
-						.duration(animDuration)
-						.attr('x1', (d: any) => xScale(d))
-						.attr('x2', (d: any) => xScale(d)),
-				(exit: any) => exit.remove()
-			);
+		// Draw grid lines
+		svg
+			.selectAll('.x-grid')
+			.data(xScale.ticks(d3.timeMonth.every(1) || d3.timeMonth))
+			.join('line')
+			.attr('class', 'x-grid')
+			.attr('x1', (d: any) => xScale(d))
+			.attr('x2', (d: any) => xScale(d))
+			.attr('y1', 0)
+			.attr('y2', height)
+			.attr('stroke', '#e0e0e0')
+			.attr('stroke-width', 0.5)
+			.attr('stroke-opacity', 0.33);
 
-		// Draw y-grid lines
-		const yGrid = svg
-			.selectAll('yGrid')
+		svg
+			.selectAll('.y-grid')
 			.data(yScale.ticks())
 			.join('line')
 			.attr('x1', 0)
@@ -171,14 +179,13 @@
 		svg
 			.append('text')
 			.attr('transform', 'rotate(-90)')
-			.attr('y', 0 - margin.left)
-			.attr('x', 0 - height / 2)
+			.attr('y', -margin.left)
+			.attr('x', -height / 2)
 			.attr('dy', '1em')
 			.style('text-anchor', 'middle')
 			.style('font-size', '14px')
 			.style('fill', '#777')
-			.style('font-family', 'sans-serif')
-			.text('Duration');
+			.text('Duration (Hours)');
 
 		// Draw chart boundary
 		svg
@@ -188,42 +195,32 @@
 			.attr('width', width)
 			.attr('height', height)
 			.attr('stroke', '#777')
+			.attr('stroke-width', 1)
 			.attr('fill', 'none');
 		// #endregion
 
 		// #region Draw Chart Lines
 		// Draw the lines for each 'app' in the dataset
+		const line = d3
+			.line<AppUsageData>()
+			.x((d: any) => xScale(d.date))
+			.y((d: any) => yScale(d.duration))
+			.curve(d3.curveLinear);
+
+		const appGroups = d3.group(filteredData, (d: any) => d.app);
+
+		// Draw the lines for each 'app' in the dataset.
 		svg
-			.selectAll('.line')
-			.data(sumstat, (d: any) => d[0]) // Key: app name
-			.join(
-				(enter: any) =>
-					enter
-						.append('path')
-						.attr('class', 'line')
-						.attr('fill', 'none')
-						.attr('stroke', (d: any) => color(d[0]))
-						.attr('stroke-width', 1.5)
-						.attr('clip-path', 'url(#clip)')
-						.attr('d', (d: any) =>
-							d3
-								.line()
-								.x((d: any) => xScale(new Date(d.timestamp)))
-								.y((d: any) => yScale(+d.duration))(d[1])
-						),
-				(update: any) =>
-					update
-						.transition()
-						.duration(animDuration)
-						.attr('clip-path', 'url(#clip)')
-						.attr('d', (d: any) =>
-							d3
-								.line()
-								.x((d: any) => xScale(new Date(d.timestamp)))
-								.y((d: any) => yScale(+d.duration))(d[1])
-						),
-				(exit: any) => exit.remove()
-			);
+			.selectAll('.app-line')
+			.data(appGroups)
+			.join('path')
+			.attr('class', 'line')
+			.attr('fill', 'none')
+			.attr('stroke', (d: any) => colorScale(d[0]))
+			.attr('stroke-width', 1.5)
+			.attr('clip-path', 'url(#clip)')
+			.attr('d', (d: any) => line(d[1]));
+
 		// #endregion
 
 		// #region Draw Tooltip
@@ -240,14 +237,15 @@
 			.style('opacity', 0)
 			.style('position', 'fixed')
 			.style('white-space', 'nowrap')
-			.style('z-index', '10')
+			.style('z-index', '1000')
 			.style('pointer-events', 'none')
 			.style('background-color', '#1a1a1a')
 			.style('border', 'solid 1px #646cff')
 			.style('color', 'rgba(255, 255, 255, 0.87)')
 			.style('padding', '7px')
 			.style('border-radius', '2px')
-			.style('box-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
+			.style('box-shadow', '0 0 10px rgba(0, 0, 0, 0.1)')
+			.style('font-size', '12px');
 
 		// Add an invisible rectangle to listen for mouse events
 		const listeningRect = svg
@@ -279,7 +277,7 @@
 					duration: closest.duration,
 					x: xScale(closest.date),
 					y: yScale(closest.duration),
-					color: color(key)
+					color: colorScale(key)
 				};
 			}).filter(Boolean); // Remove nulls
 			if (points.length === 0) return; // additional check
@@ -357,12 +355,7 @@
 		// #endregion
 
 		// #region Update chart on brush selection
-		/**
-		 * Updates the chart when the brush selection changes.
-		 * @param start - Start date of the new domain.
-		 * @param end - End date of the new domain.
-		 */
-		function updateChart(start: string, end: string) {
+		function updateChart(start: Date, end: Date) {
 			const newDomain: [Date, Date] = [new Date(start), new Date(end)];
 			xScale.domain(newDomain);
 
@@ -379,46 +372,41 @@
 			let tickInterval;
 			let tickFormat;
 
-			if (dateRangeInDays > 365 * 5) {
-				// More than 5 years
-				gridInterval = d3.timeMonth.every(3);
-				tickInterval = d3.timeYear.every(Math.ceil(dateRangeInDays / (365 * targetTickCount)));
-				tickFormat = d3.timeFormat('%Y');
-			} else if (dateRangeInDays > 365 * 2) {
+			if (dateRangeInDays > 365 * 2) {
 				// 2-5 years
 				gridInterval = d3.timeMonth.every(1);
-				tickInterval = d3.timeMonth.every(2);
-				tickFormat = d3.timeFormat("%b '%y");
+				tickInterval = d3.timeMonth.every(6) || d3.timeMonth;
+				tickFormat = d3.timeFormat('%Y');
 			} else if (dateRangeInDays > 365) {
 				// 1-2 years
 				gridInterval = d3.timeMonth.every(1);
-				tickInterval = d3.timeMonth.every(2);
+				tickInterval = d3.timeMonth.every(2) || d3.timeMonth;
 				tickFormat = d3.timeFormat('%b %Y');
 			} else if (dateRangeInDays > 180) {
 				// 6 months - 1 year
 				gridInterval = d3.timeWeek.every(2);
-				tickInterval = d3.timeMonth.every(1);
+				tickInterval = d3.timeMonth.every(1) || d3.timeMonth;
 				tickFormat = d3.timeFormat('%b %Y');
 			} else if (dateRangeInDays > 90) {
 				// 3-6 months
 				gridInterval = d3.timeWeek.every(1);
-				tickInterval = d3.timeWeek.every(2);
-				tickFormat = d3.timeFormat('Week %V');
+				tickInterval = d3.timeMonth.every(1) || d3.timeMonth;
+				tickFormat = d3.timeFormat('%b %Y');
 			} else if (dateRangeInDays > 30) {
 				// 1-3 months
 				gridInterval = d3.timeWeek.every(1);
-				tickInterval = d3.timeWeek.every(1);
-				tickFormat = d3.timeFormat('%d %b');
+				tickInterval = d3.timeWeek.every(2) || d3.timeWeek;
+				tickFormat = d3.timeFormat('%m/%d/%y');
 			} else if (dateRangeInDays > 7) {
 				// 1-4 weeks
 				gridInterval = d3.timeDay.every(Math.ceil(dateRangeInDays / targetTickCount));
-				tickInterval = d3.timeDay.every(Math.ceil(dateRangeInDays / targetTickCount));
-				tickFormat = d3.timeFormat('%d %b');
+				tickInterval = d3.timeWeek.every(2) || d3.timeWeek;
+				tickFormat = d3.timeFormat('%m/%d/%y');
 			} else {
 				// 1-7 days
 				gridInterval = d3.timeDay.every(1);
 				tickInterval = d3.timeDay.every(1);
-				tickFormat = d3.timeFormat('%a %d');
+				tickFormat = d3.timeFormat('%a %m/%d/%y');
 			}
 
 			// Update the x-axis with new ticks
@@ -461,35 +449,14 @@
 			// Update line paths
 			svg
 				.selectAll('.line')
-				.data(sumstat)
-				.join(
-					(enter: any) =>
-						enter
-							.append('path')
-							.attr('class', 'line')
-							.attr('fill', 'none')
-							.attr('stroke', (d: any) => color(d[0]))
-							.attr('stroke-width', 1.5)
-							.attr('clip-path', 'url(#clip)')
-							.attr('d', (d: any) =>
-								d3
-									.line()
-									.x((d: any) => xScale(new Date(d.timestamp)))
-									.y((d: any) => yScale(+d.duration))(d[1])
-							),
-					(update: any) =>
-						update
-							.transition()
-							.duration(animDuration)
-							.attr('clip-path', 'url(#clip)')
-							.attr('d', (d: any) =>
-								d3
-									.line()
-									.x((d: any) => xScale(new Date(d.timestamp)))
-									.y((d: any) => yScale(+d.duration))(d[1])
-							),
-					(exit: any) => exit.remove()
-				);
+				.data(appGroups)
+				.join('path')
+				.attr('class', 'line')
+				.attr('fill', 'none')
+				.attr('stroke', (d: any) => colorScale(d[0]))
+				.attr('stroke-width', 1.5)
+				.attr('clip-path', 'url(#clip)')
+				.attr('d', (d: any) => line(d[1]));
 		}
 		// #endregion
 
@@ -516,22 +483,16 @@
 				.attr('transform', `translate(${margin.left},${margin.top})`);
 
 			// regular x-scale for chart
-			let xScale = d3
-				.scaleTime()
-				.range([0, width])
-				.domain(d3.extent(data, (d: any) => d.date));
+			let xScale = d3.scaleTime().domain(dateExtent).range([0, width]);
 
 			// const for calculating
-			const constXScale = d3
-				.scaleTime()
-				.range([0, width])
-				.domain(d3.extent(data, (d: any) => d.date));
+			const constXScale = d3.scaleTime().domain(dateExtent).range([0, width]);
 
 			// y-scale needed for lines
 			let yScale = d3
 				.scaleLinear()
+				.domain([0, d3.max(data, (d: any) => d.duration) || 0])
 				.range([height, 0])
-				.domain([0, d3.max(data, (d: any) => d.duration)])
 				.nice();
 
 			// x-axis
@@ -542,7 +503,7 @@
 				.call(
 					d3
 						.axisBottom(xScale)
-						.tickValues(xScale.ticks(d3.timeMonth.every(2)))
+						.tickValues(xScale.ticks(d3.timeMonth.every(4)))
 						.tickFormat(d3.timeFormat('%b %Y'))
 				)
 				.call((g: any) => g.select('.domain').remove())
@@ -553,10 +514,10 @@
 
 			// Draw grid lines
 			svg
-				.selectAll('xGrid')
+				.selectAll('.x-grid')
 				.data(xScale.ticks(20))
-				.attr('class', 'x-grid')
 				.join('line')
+				.attr('class', 'x-grid')
 				.attr('x1', (d: any) => xScale(d))
 				.attr('x2', (d: any) => xScale(d))
 				.attr('y1', 0)
@@ -576,53 +537,31 @@
 				.attr('fill', 'none');
 
 			// Group data by 'app' for line chart
-			const sumstat = d3.group(filteredData, (d: any) => d.app);
+			const appGroups = d3.group(filteredData, (d: any) => d.app);
 
-			// Draw lines in the brush chart
-			svg
-				.selectAll('.line')
-				.data(sumstat)
-				.join(
-					(enter: any) =>
-						enter
-							.append('path')
-							.attr('class', 'line')
-							.attr('fill', 'none')
-							.attr('stroke', (d: any) => color(d[0]))
-							.attr('stroke-width', 1.5)
-							.attr('clip-path', 'url(#clip)')
-							.attr('d', (d: any) =>
-								d3
-									.line()
-									.x((d: any) => xScale(new Date(d.timestamp)))
-									.y((d: any) => yScale(+d.duration))(d[1])
-							),
-					(update: any) =>
-						update
-							.transition()
-							.duration(animDuration)
-							.attr('clip-path', 'url(#clip)')
-							.attr('d', (d: any) =>
-								d3
-									.line()
-									.x((d: any) => xScale(new Date(d.timestamp)))
-									.y((d: any) => yScale(+d.duration))(d[1])
-							),
-					(exit: any) => exit.remove()
-				);
+			const line = d3.line<AppUsageData>()
+				.x((d: any) => xScale(d.date))
+				.y((d: any) => yScale(d.duration));
+			
+			svg.selectAll(".line")
+				.data(appGroups)
+				.join("path")
+				.attr("class", "line")
+				.attr("fill", "none")
+				.attr("stroke", (d: any) => colorScale(d[0]))
+				.attr("stroke-width", 1.5)
+				.attr("d", (d: any) => line(d[1]));
+			
 			// #endregion
 
 			// #region Brush functionality
-			const brush = d3
-				.brushX()
-				.extent([
-					[0, 0],
-					[width, height]
-				])
-				.on('brush end', brushed);
+			const brush = d3.brushX()
+				.extent([[0, 0], [width, height]])
+				.on("brush end", brushed);
 
-			// Append brush group
-			const brushGroup = svg.append('g').attr('class', 'brush').call(brush);
+			const brushGroup = svg.append("g")
+				.attr("class", "brush")
+				.call(brush);
 
 			// Brush Event Handlers
 			function brushed({ selection }: { selection: [number, number] | null }) {
@@ -637,38 +576,17 @@
 
 				// Update main chart with the selected range
 				updateChart(x0, x1);
-
-				// Update x-axis to reflect new domain
-				xScale.domain([x0, x1]);
-				xAxis.call(
-					d3
-						.axisBottom(xScale)
-						.tickValues(xScale.ticks(d3.timeMonth.every(2)))
-						.tickFormat(d3.timeFormat('%b %Y'))
-				);
 			}
 
 			// Reset chart on double-click
 			svg.on('dblclick', () => {
-				const fullExtent = d3.extent(data, (d: any) => d.date) as [string, string];
-
-				// Reset xScale and main chart
-				xScale.domain(fullExtent);
-
-				currentStartDate = new Date(fullExtent[0]).toISOString().split('T')[0];
-				currentEndDate = new Date(fullExtent[1]).toISOString().split('T')[0];
-				updateChart(fullExtent[0], fullExtent[1]);
+				currentStartDate = new Date(dateExtent[0]).toISOString().split('T')[0];
+				currentEndDate = new Date(dateExtent[1]).toISOString().split('T')[0];
+				
+				updateChart(dateExtent[0], dateExtent[1]);
 
 				// Clear brush selection
 				brushGroup.call(brush.move, null);
-
-				// Reset x-axis
-				xAxis.call(
-					d3
-						.axisBottom(xScale)
-						.tickValues(xScale.ticks(d3.timeMonth.every(2)))
-						.tickFormat(d3.timeFormat('%b %Y'))
-				);
 			});
 			// #endregion
 		}
