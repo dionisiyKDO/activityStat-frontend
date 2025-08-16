@@ -50,6 +50,19 @@
 		drawChart();
 	});
 
+	$effect(() => {
+		if (!chartContainer) return;
+		
+		const resizeObserver = new ResizeObserver(() => {
+			if (data) {
+				drawChart();
+			}
+		});
+		
+		resizeObserver.observe(chartContainer);
+		return () => resizeObserver.disconnect();
+	});
+
 	function drawChart() {
 		//#region Draw Main Chart
 		if (!chartContainer || !chartSvg || !data?.length) return;
