@@ -265,8 +265,6 @@
 				if (!closest) return null; // Handle empty data
 				const closestApp = app_list![key]; // find title for the app
 
-				console.log(closest);
-
 				return {
 					app: closestApp,
 					title: key,
