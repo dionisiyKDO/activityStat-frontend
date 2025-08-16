@@ -3,12 +3,12 @@
 	import * as d3 from 'd3';
 	import { type AppUsageData, type App, type margin } from '$lib/types';
 
+	// #region Data Preparation
 	let chartContainer: HTMLDivElement;
 	let chartSvg: SVGSVGElement;
 	let brushSvg: SVGSVGElement;
 	let tooltipDiv: HTMLDivElement;
 
-	// #region Data Preparation
 	interface Props {
 		data: AppUsageData[] | null;
 		app_list: App[] | null;
@@ -51,6 +51,7 @@
 	});
 
 	function drawChart() {
+		//#region Draw Main Chart
 		if (!chartContainer || !chartSvg || !data?.length) return;
 
 		// Clear previous chart
@@ -68,7 +69,7 @@
 		// Draw the "brush" chart
 		drawBrush();
 
-		// #region SVG Initialization
+		// SVG Initialization
 		const svg = d3
 			.select(chartSvg)
 			.attr('width', containerRect.width)
@@ -85,9 +86,6 @@
 			.attr('width', width)
 			.attr('height', height);
 
-		// Group data by 'app' (to separate lines per app)
-		const sumstat = d3.group(filteredData, (d: any) => d.app);
-
 		// Define Time scale (x-axis)
 		let xScale = d3
 			.scaleTime()
@@ -100,7 +98,6 @@
 			.domain([0, d3.max(data, (d: any) => d.duration)])
 			.range([height, 0])
 			.nice();
-		// #endregion
 
 		// #region Axes, Grid, Bounds
 		// Draw the x-axis
@@ -199,7 +196,7 @@
 			.attr('fill', 'none');
 		// #endregion
 
-		// #region Draw Chart Lines
+		// #region Chart Lines
 		// Draw the lines for each 'app' in the dataset
 		const line = d3
 			.line<AppUsageData>()
@@ -223,7 +220,7 @@
 
 		// #endregion
 
-		// #region Draw Tooltip
+		// #region Tooltip
 		// Set up the tooltip line to indicate the cursor's x-position
 		const tooltipLine = svg
 			.append('line')
@@ -263,7 +260,7 @@
 			const mouseY = event.clientY;
 
 			// Find the closest data points for each app
-			const points = Array.from(sumstat, ([key, values]) => {
+			const points = Array.from(appGroups, ([key, values]) => {
 				const closest = d3.least(values, (d: any) => Math.abs(xScale(d.date) - mouseXsvg));
 				if (!closest) return null; // Handle empty data
 				const closestApp = app_list![key]; // find title for the app
@@ -354,7 +351,8 @@
 		}
 		// #endregion
 
-		// #region Update chart on brush selection
+		// #region Update Function
+		// Function to update chart on brush selection
 		function updateChart(start: Date, end: Date) {
 			const newDomain: [Date, Date] = [new Date(start), new Date(end)];
 			xScale.domain(newDomain);
@@ -460,12 +458,11 @@
 		}
 		// #endregion
 
-		// #region Brush Chart
-		// Brush function to zoom and pan chart
 		function drawBrush() {
+			// #region Brush Chart
+			// Brush chart to zoom and pan chart
 			if (!brushSvg) return;
 
-			// #region Initialize Brush Chart
 			d3.select(brushSvg).selectAll('*').remove();
 
 			const containerRect = chartContainer.getBoundingClientRect();
@@ -494,7 +491,8 @@
 				.domain([0, d3.max(data, (d: any) => d.duration) || 0])
 				.range([height, 0])
 				.nice();
-
+			
+			// #region Brush Axes, Grid, Bounds
 			// x-axis
 			let xAxis = svg
 				.append('g')
@@ -536,6 +534,9 @@
 				.attr('stroke', '#777')
 				.attr('fill', 'none');
 
+			// #endregion
+
+			// #region Brush Chart Lines
 			// Group data by 'app' for line chart
 			const appGroups = d3.group(filteredData, (d: any) => d.app);
 
@@ -589,8 +590,9 @@
 				brushGroup.call(brush.move, null);
 			});
 			// #endregion
+		
+			// #endregion
 		}
-		// #endregion
 	}
 </script>
 
