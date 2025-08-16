@@ -1,4 +1,4 @@
-import { type AppUsageData, type App, type margin } from '$lib/types';
+import { type RawAppUsageData, type AppUsageData, type App, type margin } from '$lib/types';
 
 
 
@@ -54,8 +54,14 @@ export async function fetchAppList(): Promise<App[] | null>  {
 			return null;
 		}
 
-		const data: App[] = await response.json();		
-		return data;
+        const data: Record<string, string[]> = await response.json();
+
+        const appList: App[] = Object.entries(data).map(([title, executables]) => ({
+            title: title,
+            app: executables
+        }));
+
+		return appList;
 	} catch (err) {
 		console.log(err);
 		return null;
