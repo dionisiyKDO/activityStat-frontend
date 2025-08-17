@@ -1,4 +1,4 @@
-import { type RawAppUsageData, type AppUsageData, type App, type margin } from '$lib/types';
+import { type RawAppUsageData, type AppUsageData, type App } from '$lib/types';
 
 export async function fetchAppUsageData(apps: App[]): Promise<AppUsageData[] | null> {
 	try {
