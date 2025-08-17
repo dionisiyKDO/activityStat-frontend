@@ -15,6 +15,7 @@ export interface AppUsageData {
 
 export interface RawAppUsageData {
 	date: number;
+	app: Text;
 	duration: number;
 }
 
