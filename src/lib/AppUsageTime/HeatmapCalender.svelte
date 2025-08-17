@@ -68,17 +68,17 @@
 
 	$effect(() => {
 		if (!chartContainer) return;
-		
+
 		const resizeObserver = new ResizeObserver(() => {
 			if (datasets && datasets[currentYear]) {
-			drawHeatmap(datasets[currentYear]);
+				drawHeatmap(datasets[currentYear]);
 			}
 		});
-		
+
 		resizeObserver.observe(chartContainer);
 		return () => resizeObserver.disconnect();
 	});
-	
+
 	function drawHeatmap(data: any) {
 		//#region Draw Heatmap
 		if (!chartContainer || !chartSvg || !data?.length) return;
@@ -98,11 +98,11 @@
 		const availableWidth = containerRect.width;
 		const cellSize = Math.min(20, availableWidth / 56); // ~53 weeks + margins
 		const width = Math.min(availableWidth, cellSize * 53 + margin.left + margin.right);
-		
+
 		// Colors and styles
 		const startColor = '#242424'; // background color
 		const endColor = '#f0e68c'; // light khaki | #535bf2 | 'rgba(0, 0, 0, 0)'
-		const accentColor = 'black'
+		const accentColor = 'black';
 		const cellStrokeColor = 'rgba(100, 100, 100, 0.5)';
 		const cellStrokeColorFocus = '#f0e68c';
 		const textColor = '#777';
@@ -204,20 +204,24 @@
 			});
 
 		// Add corner indicators for clamped values (separate from cells)
-		svg.selectAll('circle.indicator')
+		svg
+			.selectAll('circle.indicator')
 			.data(parsedData.filter((d: any) => d.duration >= clampValue))
 			.enter()
 			.append('circle')
 			.attr('class', 'indicator')
-			.attr('cx', (d: any) => formatWeek(firstDate, d.date) * cellSize + cellSize - cellStrokeWidth - cellMargin - 3)
+			.attr(
+				'cx',
+				(d: any) =>
+					formatWeek(firstDate, d.date) * cellSize + cellSize - cellStrokeWidth - cellMargin - 3
+			)
 			.attr('cy', (d: any) => formatDay(d.date) * cellSize + 3)
 			.attr('r', 2)
 			.attr('fill', accentColor) // or 'red' if you prefer
 			.style('pointer-events', 'none') // Don't interfere with cell interactions
 			.raise(); // Ensure circles are on top of rectangles
-		
-		// #endregion
 
+		// #endregion
 
 		// Tooltip
 		const tooltip = d3
@@ -276,7 +280,6 @@
 			currentYear = yearNum;
 		}
 	}
-
 </script>
 
 <!-- #region Tags
@@ -297,12 +300,12 @@
 					{year}
 				</button>
 			{/each}
-			
+
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<div class="pl-2 border-l border-solid border-[--border]">
-				<div 
-					class="button w-20 flex items-center justify-center gap-1 cursor-text"
+			<div class="border-l border-solid border-[--border] pl-2">
+				<div
+					class="button flex w-20 cursor-text items-center justify-center gap-1"
 					onclick={(e) => {
 						const input = e.currentTarget.querySelector('input');
 						input?.focus();
@@ -312,16 +315,19 @@
 					<input
 						type="text"
 						bind:value={clampValue}
-						class="bg-transparent border-none outline-none text-center w-8 text-white"
+						class="w-8 border-none bg-transparent text-center text-white outline-none"
 						style="color: inherit;"
 						onkeydown={(e) => {
 							// Allow only numbers, backspace, delete, arrow keys, and decimal point
-							if (!/[\d\.\b]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+							if (
+								!/[\d\.\b]/.test(e.key) &&
+								!['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+							) {
 								e.preventDefault();
 							}
 						}}
 					/>
-					<span class="text-[--muted-text] text-sm">hrs</span>
+					<span class="text-sm text-[--muted-text]">hrs</span>
 				</div>
 			</div>
 		</div>

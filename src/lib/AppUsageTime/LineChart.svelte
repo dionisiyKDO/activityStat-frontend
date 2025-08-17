@@ -3,6 +3,13 @@
 	import * as d3 from 'd3';
 	import { type AppUsageData, type App, type margin } from '$lib/types';
 
+	
+	// TODO: Lines are not on the whole graph, they start only from first time apps was started, and maybe last
+	// Something in that area are causing some errors
+	// On an empty week in tooltip there is still data shown
+	// On Gacha preset heatmap values and sum on lines tooltip doesn't add up
+
+
 	// #region Data Preparation
 	let chartContainer: HTMLDivElement;
 	let chartSvg: SVGSVGElement;
@@ -52,13 +59,13 @@
 
 	$effect(() => {
 		if (!chartContainer) return;
-		
+
 		const resizeObserver = new ResizeObserver(() => {
 			if (data) {
 				drawChart();
 			}
 		});
-		
+
 		resizeObserver.observe(chartContainer);
 		return () => resizeObserver.disconnect();
 	});
@@ -502,7 +509,7 @@
 				.domain([0, d3.max(data, (d: any) => d.duration) || 0])
 				.range([height, 0])
 				.nice();
-			
+
 			// #region Brush Axes, Grid, Bounds
 			// x-axis
 			let xAxis = svg
@@ -551,29 +558,33 @@
 			// Group data by 'app' for line chart
 			const appGroups = d3.group(filteredData, (d: any) => d.app);
 
-			const line = d3.line<AppUsageData>()
+			const line = d3
+				.line<AppUsageData>()
 				.x((d: any) => xScale(d.date))
 				.y((d: any) => yScale(d.duration));
-			
-			svg.selectAll(".line")
+
+			svg
+				.selectAll('.line')
 				.data(appGroups)
-				.join("path")
-				.attr("class", "line")
-				.attr("fill", "none")
-				.attr("stroke", (d: any) => colorScale(d[0]))
-				.attr("stroke-width", 1.5)
-				.attr("d", (d: any) => line(d[1]));
-			
+				.join('path')
+				.attr('class', 'line')
+				.attr('fill', 'none')
+				.attr('stroke', (d: any) => colorScale(d[0]))
+				.attr('stroke-width', 1.5)
+				.attr('d', (d: any) => line(d[1]));
+
 			// #endregion
 
 			// #region Brush functionality
-			const brush = d3.brushX()
-				.extent([[0, 0], [width, height]])
-				.on("brush end", brushed);
+			const brush = d3
+				.brushX()
+				.extent([
+					[0, 0],
+					[width, height]
+				])
+				.on('brush end', brushed);
 
-			const brushGroup = svg.append("g")
-				.attr("class", "brush")
-				.call(brush);
+			const brushGroup = svg.append('g').attr('class', 'brush').call(brush);
 
 			// Brush Event Handlers
 			function brushed({ selection }: { selection: [number, number] | null }) {
@@ -594,14 +605,14 @@
 			svg.on('dblclick', () => {
 				currentStartDate = new Date(dateExtent[0]).toISOString().split('T')[0];
 				currentEndDate = new Date(dateExtent[1]).toISOString().split('T')[0];
-				
+
 				updateChart(dateExtent[0], dateExtent[1]);
 
 				// Clear brush selection
 				brushGroup.call(brush.move, null);
 			});
 			// #endregion
-		
+
 			// #endregion
 		}
 	}

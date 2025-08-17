@@ -1,16 +1,11 @@
 import { type RawAppUsageData, type AppUsageData, type App, type margin } from '$lib/types';
 
-
-
-export async function fetchAppUsageData(apps: App[]): Promise<AppUsageData[] | null>   {
+export async function fetchAppUsageData(apps: App[]): Promise<AppUsageData[] | null> {
 	try {
-		let results: AppUsageData[] = [];		
-		
+		let results: AppUsageData[] = [];
+
 		for (const app of apps) {
-		
-			const response = await fetch(
-				`/api/daily_app_usage/${app.title}`
-			);
+			const response = await fetch(`/api/daily_app_usage/${app.title}`);
 
 			if (!response.ok) {
 				const data = await response.json();
@@ -26,13 +21,13 @@ export async function fetchAppUsageData(apps: App[]): Promise<AppUsageData[] | n
 					timestamp: d.date,
 					date: new Date(d.date),
 					app: app.title,
-					duration: d.duration,
-				}
-			});			
+					duration: d.duration
+				};
+			});
 
 			results.push(...data);
 		}
-		
+
 		return results;
 	} catch (err) {
 		console.log(err);
@@ -40,12 +35,9 @@ export async function fetchAppUsageData(apps: App[]): Promise<AppUsageData[] | n
 	}
 }
 
-
-export async function fetchAppList(): Promise<App[] | null>  {
+export async function fetchAppList(): Promise<App[] | null> {
 	try {
-		const response = await fetch(
-			`/api/app_list/`
-		);
+		const response = await fetch(`/api/app_list/`);
 
 		if (!response.ok) {
 			const data = await response.json();
@@ -54,12 +46,12 @@ export async function fetchAppList(): Promise<App[] | null>  {
 			return null;
 		}
 
-        const data: Record<string, string[]> = await response.json();
+		const data: Record<string, string[]> = await response.json();
 
-        const appList: App[] = Object.entries(data).map(([title, executables]) => ({
-            title: title,
-            app: executables
-        }));
+		const appList: App[] = Object.entries(data).map(([title, executables]) => ({
+			title: title,
+			app: executables
+		}));
 
 		return appList;
 	} catch (err) {

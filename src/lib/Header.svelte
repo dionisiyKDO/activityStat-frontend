@@ -1,8 +1,4 @@
 <!-- lib/Header -->
-<script>
-</script>
-
-
 <header class="flex justify-between border-b-2 border-solid border-gray-400 p-4">
 	<h1 class="text-3xl font-bold">Activity stat</h1>
 	<nav class="flex items-center">
@@ -19,7 +15,3 @@
 		</ul>
 	</nav>
 </header>
-
-
-<style>
-</style>
