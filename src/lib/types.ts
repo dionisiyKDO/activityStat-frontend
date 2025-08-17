@@ -7,7 +7,6 @@ export interface margin {
 
 // Daily app usage
 export interface AppUsageData {
-	timestamp: number;
 	date: Date | null;
 	app: string;
 	duration: number;
@@ -22,6 +21,13 @@ export interface RawAppUsageData {
 export interface App {
 	app: string[];
 	title: string;
+}
+
+// Daily OS usage 
+export interface OSUsageData {
+	date: Date | null;
+	platform: string;
+	duration: number;
 }
 
 // Spent time

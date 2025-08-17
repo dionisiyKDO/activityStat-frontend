@@ -22,8 +22,10 @@
 		// First pass: aggregate existing data by date
 		const dateAggregates: Record<string, number> = {};
 		data.forEach((d) => {
-			const date = new Date(d.timestamp).toISOString().split('T')[0];
-			dateAggregates[date] = (dateAggregates[date] || 0) + d.duration;
+			if (d.date) {
+				const date = d.date.toISOString().split('T')[0]
+				dateAggregates[date] = (dateAggregates[date] || 0) + d.duration;
+			}
 		});
 
 		// Second pass: create complete year datasets
