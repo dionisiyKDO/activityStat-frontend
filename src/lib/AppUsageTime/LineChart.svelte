@@ -3,13 +3,6 @@
 	import * as d3 from 'd3';
 	import { type AppUsageData, type App, type margin } from '$lib/types';
 
-	
-	// TODO: Lines are not on the whole graph, they start only from first time apps was started, and maybe last
-	// Something in that area are causing some errors
-	// On an empty week in tooltip there is still data shown
-	// On Gacha preset heatmap values and sum on lines tooltip doesn't add up
-
-
 	// #region Data Preparation
 	let chartContainer: HTMLDivElement;
 	let chartSvg: SVGSVGElement;
