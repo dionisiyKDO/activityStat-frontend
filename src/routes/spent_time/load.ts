@@ -1,21 +1,8 @@
-export interface SpentTime {
-	app: string;
-	duration: number;
-	title: string;
-}
-
-export interface Metadata {
-	start_date: string | Date
-	end_date: string | Date
-	total_records: number
-}
-  
+import { type SpentTime, type Metadata } from '$lib/types';
 
 export async function fetchSpentTime(): Promise<SpentTime[] | null> {
 	try {
-        const response = await fetch(
-            `/api/spent_time`
-        );
+		const response = await fetch(`/api/spent_time`);
 
 		if (!response.ok) {
 			const data = await response.json();
@@ -32,12 +19,9 @@ export async function fetchSpentTime(): Promise<SpentTime[] | null> {
 	}
 }
 
-
 export async function fetchMetadata(): Promise<Metadata | null> {
 	try {
-        const response = await fetch(
-            `/api/dataset_metadata`
-        );
+		const response = await fetch(`/api/dataset_metadata`);
 
 		if (!response.ok) {
 			const data = await response.json();
@@ -50,8 +34,8 @@ export async function fetchMetadata(): Promise<Metadata | null> {
 
 		data.start_date = new Date(data.start_date).toLocaleDateString();
 		data.end_date = new Date(data.end_date).toLocaleDateString();
-		
-		return data; 
+
+		return data;
 	} catch (err) {
 		console.log(err);
 		return null;
