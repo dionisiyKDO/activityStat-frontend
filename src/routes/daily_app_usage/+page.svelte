@@ -33,16 +33,20 @@
 					title: 'Zenless Zone Zero'
 				},
 				{
+					app: ['BlueArchive.exe'],
+					title: 'Blue Archive'
+				},
+				{
+					app: ['Client-Win64-Shipping.exe'],
+					title: 'Wuthering Waves'
+				},
+				{
 					app: ['dnplayer.exe'],
 					title: 'LDPlayer'
 				},
 				{
 					app: ['reverse1999.exe'],
 					title: 'Reverse 1999'
-				},
-				{
-					app: ['Client-Win64-Shipping.exe'],
-					title: 'Wuthering Waves'
 				},
 				{
 					app: ['nikke.exe'],
